@@ -4,5 +4,5 @@
 initial_year = int(input("Input initial year: "))
 final_year = int(input("Input final year: "))
 for year in range(initial_year, final_year + 1, 4):
-    if ((year % 4 == 0) and (year % 100 != 0)) or ((year % 400 == 0) and (year % 100 == 0)):
+    if ((year % 4 == 0) and (year % 100 != 0)) or (year % 400 == 0):
         print(f'{year} year is leap')
