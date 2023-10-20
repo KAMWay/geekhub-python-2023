@@ -3,4 +3,4 @@
 #          [1, 2, 'u', 'a', 4, True] --> 5 --> False
 
 value = input('Enter the value to check: ')
-print((int(value) if value.isdigit() else value) in [1, 2, 'u', 'a', 4, True])
+print(value in map(str, [1, 2, 'u', 'a', 4, True]))
