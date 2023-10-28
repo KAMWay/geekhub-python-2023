@@ -16,7 +16,12 @@ def to_number(value):
 
 def number_calculate(operator, a, b):
     func = get_function(operator)
-    return get_result(func, a, b)
+    try:
+        return get_result(func, a, b)
+    except ZeroDivisionError:
+        return 'Division by Zero'
+    except ArithmeticError:
+        return 'Arithmetic error'
 
 
 def get_function(operator: str):
@@ -43,6 +48,7 @@ def get_result(func, a, b):
         return func(a, b)
 
 
+# Can be realized with Python func eval()
 def get_eval_result(func, a, b):
     if is_valid_func(func, a, b):
         return eval(f'{a} {func} {b}')
