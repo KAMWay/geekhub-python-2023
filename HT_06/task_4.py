@@ -22,7 +22,7 @@ def range_args(func):
         if not numbers or len(numbers) != 2:
             return None
 
-        return numbers if (numbers[0] and numbers[1]) and (0 <= numbers[0] < numbers[1]) else None
+        return numbers if (numbers[0] and numbers[1]) and (numbers[0] < numbers[1]) else None
 
     return wrapper
 
@@ -56,7 +56,7 @@ def is_prime(number: int):
 
 
 def prime_list(start: int, end: int) -> list:
-    return list(filter(lambda number: is_prime(number), range(start, end + 1)))
+    return list(filter(lambda number: is_prime(number), range(max(start, 2), max(end + 1, 2))))
 
 
 if __name__ == '__main__':
