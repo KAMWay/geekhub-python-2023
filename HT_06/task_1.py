@@ -3,31 +3,29 @@
 from math import sqrt
 
 
+def to_number(value):
+    try:
+        try:
+            return int(value)
+        except ValueError:
+            return float(value)
+    except ValueError:
+        return None
+
+
+def get_from_console() -> int or float:
+    while True:
+        _values = to_number(input('Enter the side of the square: '))
+        if _values and _values >= 0:
+            return _values
+        else:
+            print('Not valid input. Try again.')
+
+
 def square(side: int or float) -> tuple:
     return 4 * side, side ** 2, side * sqrt(2)
 
 
-def get_number_from_console() -> int or float:
-    while True:
-        number = input('Enter the side of the square: ')
-        try:
-            try:
-                return int(number)
-            except ValueError:
-                return float(number)
-        except ValueError:
-            print(f"{number} is not number. Try again.")
-
-
-def get_side_of_square_from_console() -> int or float:
-    side = 0
-    while side <= 0:
-        side = get_number_from_console()
-        if side <= 0:
-            print(f"The side of the square must be positive. Try again.")
-    return side
-
-
 if __name__ == '__main__':
-    side_of_square = get_side_of_square_from_console()
+    side_of_square = get_from_console()
     print(square(side_of_square))

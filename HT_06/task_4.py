@@ -5,64 +5,31 @@
 from math import sqrt
 
 
-def integer(func):
-    def wrapper(*args, **kwargs):
+def get_from_console():
+    while True:
         try:
-            return func(*args, **kwargs)
+            return list(map(int, input("Enter range (e.g 'start' 'end'):").split()[:2]))
         except ValueError:
-            return None
-
-    return wrapper
-
-
-def range_args(func):
-    def wrapper(*args, **kwargs):
-        numbers = func(*args, **kwargs)
-
-        if not numbers or len(numbers) != 2:
-            return None
-
-        return numbers if (numbers[0] and numbers[1]) and (numbers[0] < numbers[1]) else None
-
-    return wrapper
-
-
-@range_args
-@integer
-def get_range_args(args_str: str):
-    return list(map(int, args_str.split(' ')[:2]))
-
-
-def get_range_args_from_console() -> []:
-    str_line = input("Enter range (e.g 'start' 'end'): ")
-
-    range_args = None
-    while not range_args and len(str_line.split()) < 3:
-        range_args = get_range_args(str_line.strip())
-
-        if len(str_line.split()) < 2:
-            str_line += ' ' + input().strip()
-        else:
-            return range_args
-
-    return range_args
+            print('Not valid input. Try again.')
 
 
 def is_prime(number: int):
-    for steep in range(2, int(sqrt(number)) + 1):
-        if number % steep == 0:
+    for i in range(2, int(sqrt(number)) + 1):
+        if number % i == 0:
             return False
     return True
 
 
-def prime_list(start: int, end: int) -> list:
-    return list(filter(lambda number: is_prime(number), range(max(start, 2), max(end + 1, 2))))
+def prime_list(start_range: int, end_range: int) -> list:
+    if not start_range or not end_range:
+        return []
+
+    if start_range > end_range:
+        start_range, end_range = end_range, start_range
+
+    return list(filter(lambda number: is_prime(number), range(max(start_range, 2), max(end_range + 1, 2))))
 
 
 if __name__ == '__main__':
-    range_args = get_range_args_from_console()
-
-    if range_args:
-        print(prime_list(range_args[0], range_args[1]))
-    else:
-        print("Can't parser range args.")
+    start, end = get_from_console()
+    print(prime_list(start, end))

@@ -2,30 +2,39 @@
 # і виводить результат. Елементами списку можуть бути дані будь-яких типів.
 #     Наприклад:
 #     1, 1, 'foo', [1, 2], True, 'foo', 1, [1, 2] ----> "1 -> 3, foo -> 2, [1, 2] -> 2, True -> 1"
+from collections import Counter
 
 
-def dict_key(func):
-    def wrapper(key, value):
-        try:
-            return func(str(key) if isinstance(key, bool) else item, value)
-        except TypeError:
-            return {str(key): value}
-
-    return wrapper
+def is_hashable(item):
+    try:
+        hash(item)
+        return True
+    except TypeError:
+        return False
 
 
-@dict_key
-def get_dict(key, value):
-    return {key: value}
+def get_dict_key_value(item):
+    if isinstance(item, bool) or not is_hashable(item):
+        return str(item)
+    else:
+        return item
+
+
+def get_dict(elements_list: list) -> dict:
+    _str_values = list(map(str, elements_list))
+    _elements_dict = {}
+    for item in elements_list:
+        _key = get_dict_key_value(item)
+        _value = _str_values.count(str(item))
+        _elements_dict[_key] = _value
+    return _elements_dict
+
+
+def get_dict_with_counter(elements_list: list) -> dict:
+    return dict(Counter(list(map(str, elements_list))).items())
 
 
 if __name__ == '__main__':
-
     some_list = [None, 1, 1, (1, 'a'), None, 'foo', [1, 2], (1, 'a'), True, None, 'foo', 1, [1, 2]]
-
-    str_values = list(map(str, some_list))
-    some_dict = {}
-    for item in some_list:
-        some_dict.update(get_dict(item, str_values.count(str(item))))
-
-    print(some_dict)
+    print(get_dict(some_list))
+    print(get_dict_with_counter(some_list))

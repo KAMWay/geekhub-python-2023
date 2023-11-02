@@ -4,64 +4,39 @@
 # Параметр <percents> є необов'язковим і має значення по замовчуванню <10> (10%). Функція повинна принтануть суму,
 # яка буде на рахунку, а також її повернути (але округлену до копійок).
 
-def positive(func):
-    def wrapper(*args, **kwargs):
-        number = func(*args, **kwargs)
-
-        if not number:
-            return None
-
-        if number > 0:
-            return number
-        else:
-            print(f"The number must be positive. Try again.")
-
-    return wrapper
-
-
-@positive
-def get_positive_number(number) -> int or float:
+def to_number(value):
     try:
         try:
-            return int(number)
+            return int(value)
         except ValueError:
-            return float(number)
+            return float(value)
     except ValueError:
-        print(f"{number} is not number. Try again.")
+        return None
 
 
-def get_positive_number_from_console(msg: str) -> int or float:
-    positive_number = None
-
-    while not positive_number:
-        positive_number = get_positive_number(input(msg))
-
-    return positive_number
-
-
-def repeat_bank_decorator(func):
-    def wrapper(amount: int or float, years: int or float, percents: int or float):
-        while years > 0:
-            amount = func(amount, years, (percents if years > 1 else percents * years))
-            years -= 1
-        return amount
-
-    return wrapper
+def get_from_console(msg: str) -> int or float:
+    while True:
+        _values = to_number(input(msg))
+        if _values and _values >= 0:
+            return _values
+        else:
+            print('Not valid input. Try again.')
 
 
-@repeat_bank_decorator
-def bank(amount: int or float, years: int or float, percents: int or float = 10) -> int or float:
-    amount = amount + amount * percents / 100
+def bank(amount: int or float, years: int or float, percents: int or float = 10) -> float:
+    _total = amount
+    for year in range(int(years)):
+        _total += _total * percents / 100
+    _total += amount * percents * (years % 1) / 100
 
-    if years - 1 <= 0:
-        print(f'Total amount: {amount}')
+    print(f'Total amount: {_total}')
 
-    return round(amount, 2)
+    return round(_total, 2)
 
 
 if __name__ == '__main__':
-    amount_deposit = get_positive_number_from_console('Enter amount deposit: ')
-    number_years = get_positive_number_from_console('Enter the number of years: ')
-    number_percents = get_positive_number_from_console('Enter the number of percents: ')
+    amount = get_from_console('Enter amount deposit: ')
+    years = get_from_console('Enter the number of years: ')
+    percents = get_from_console('Enter the number of percents: ')
 
-    print(bank(amount_deposit, number_years, number_percents))
+    print(bank(amount, years, percents))
