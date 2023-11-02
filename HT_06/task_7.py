@@ -31,7 +31,7 @@ def get_dict(elements_list: list) -> dict:
 
 
 def get_dict_with_counter(elements_list: list) -> dict:
-    return dict(Counter(list(map(str, elements_list))).items())
+    return dict(Counter(map(str, elements_list)).items())
 
 
 if __name__ == '__main__':
