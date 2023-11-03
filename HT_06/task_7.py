@@ -13,28 +13,25 @@ def is_hashable(item):
         return False
 
 
-def get_dict_key_value(item):
-    if isinstance(item, bool) or not is_hashable(item):
-        return str(item)
-    else:
-        return item
+def to_string(items_dict: dict) -> str:
+    return ', '.join(f'{key}:{val}' for key, val in items_dict.items())
 
 
-def get_dict(elements_list: list) -> dict:
-    _str_values = list(map(str, elements_list))
-    _elements_dict = {}
-    for item in elements_list:
-        _key = get_dict_key_value(item)
-        _value = _str_values.count(str(item))
-        _elements_dict[_key] = _value
-    return _elements_dict
+def print_dict_with_counter(elements_list: list):
+    hashable_items = filter(lambda i: is_hashable(i) and not isinstance(i, bool), elements_list)
+    hashable_items_dict = dict(Counter(hashable_items).items())
 
+    not_hashable_items = filter(lambda i: not is_hashable(i), elements_list)
+    not_hashable_items_dict = dict(Counter(map(str, not_hashable_items)).items())
 
-def get_dict_with_counter(elements_list: list) -> dict:
-    return dict(Counter(map(str, elements_list)).items())
+    boll_items = filter(lambda i: isinstance(i, bool), elements_list)
+    boll_items_dict = dict(Counter(boll_items).items())
+
+    print(to_string(hashable_items_dict), end=', ')
+    print(to_string(boll_items_dict), end=', ')
+    print(to_string(not_hashable_items_dict))
 
 
 if __name__ == '__main__':
-    some_list = [None, 1, 1, (1, 'a'), None, 'foo', [1, 2], (1, 'a'), True, None, 'foo', 1, [1, 2]]
-    print(get_dict(some_list))
-    print(get_dict_with_counter(some_list))
+    some_list = [None, 1, 1, (1, 'a'), None, 'foo', False, 'True', [1, 2], (1, 'a'), True, None, 'foo', 1, [1, 2]]
+    print_dict_with_counter(some_list)
