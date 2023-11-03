@@ -9,15 +9,15 @@ class ValidateException(Exception):
     pass
 
 
-def is_valid_username_and_psw(username: str, psw: str) -> bool:
+def is_valid_login(username: str, psw: str) -> bool:
     if not username or not psw:
-        return False
+        raise ValidateException("username and password can't be empty")
 
     if 3 > len(username) or len(username) > 50:
         raise ValidateException('username length must be in the range [3..50]')
 
-    if len(psw) < 8:
-        raise ValidateException('password length must be more then 8')
+    if len(psw) < 8 or not any(ch.isdigit() for ch in psw):
+        raise ValidateException('password length must be more than 8 and contain digit')
 
     if all(map(lambda i: i.isdigit() or i.isalpha(), username)):
         return True
@@ -27,14 +27,14 @@ def is_valid_username_and_psw(username: str, psw: str) -> bool:
 
 if __name__ == '__main__':
 
-    print(is_valid_username_and_psw('user1', 'psw123456'))
+    print(is_valid_login('user1', 'psw123456'))
 
     try:
-        print(is_valid_username_and_psw('user1&', 'psw123456'))
+        print(is_valid_login('user1&', 'psw123456'))
     except ValidateException as e:
         print(e)
 
     try:
-        print(is_valid_username_and_psw('user1', 'psw 2'))
+        print(is_valid_login('user1', 'pswfghfhfhf'))
     except ValidateException as e:
         print(e)

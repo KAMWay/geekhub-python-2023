@@ -21,8 +21,8 @@ def is_valid_username_and_psw(username: str, psw: str) -> bool:
     if 3 > len(username) or len(username) > 50:
         raise ValidateException('username length must be in the range [3..50]')
 
-    if len(psw) < 8:
-        raise ValidateException('password length must be more then 8')
+    if len(psw) < 8 or not any(ch.isdigit() for ch in psw):
+        raise ValidateException('password length must be more than 8 and contain digit')
 
     if all(map(lambda i: i.isdigit() or i.isalpha(), username)):
         return True
@@ -30,7 +30,7 @@ def is_valid_username_and_psw(username: str, psw: str) -> bool:
         raise ValidateException('username must be an alphabetic and digit')
 
 
-def print_login_result(users_list: list[dict]):
+def print_login_validate(users_list: list[dict]):
     for user in users_list:
         for k, v in user.items():
             print(f'Name: {k}')
@@ -46,7 +46,8 @@ def print_login_result(users_list: list[dict]):
 
 if __name__ == '__main__':
     users = [{'user1': 'psw123456'}, {'user1&': 'psw123456'},
-             {'user1': 'psw 2'}, {'user1': 'psw12'}, {'': ''}, {None: None},
+             {'user1': 'pswfghfhfhf'}, {'user1': 'psw 2'},
+             {'': ''}, {None: None},
              {'user1': 'psw123456'}, {'user5': 'psw12345678'}]
 
-    print_login_result(users)
+    print_login_validate(users)
