@@ -10,34 +10,13 @@
 #       Status: OK
 #    P.S. Не забудьте використати блок try/except ;)
 
-class LoginException(Exception):
-    pass
-
-
 class ValidateException(Exception):
     pass
 
 
-def is_exist(username: str, psw: str, silent: bool = False) -> bool:
-    _users = [{'user1': 'psw123456'}, {'user2': 'psw1234567'},
-              {'user3': 'psw12345678'}, {'user4': 'psw123456'},
-              {'user5': 'psw12345'}, ]
-
-    if not username or not psw:
-        return False
-
-    if any(filter(lambda i: i.get(username) == psw, _users)):
-        return True
-
-    if silent:
-        return False
-    else:
-        raise LoginException('login fail')
-
-
 def is_valid_username_and_psw(username: str, psw: str) -> bool:
     if not username or not psw:
-        return False
+        raise ValidateException("username and password can't be empty")
 
     if 3 > len(username) or len(username) > 50:
         raise ValidateException('username length must be in the range [3..50]')
@@ -58,8 +37,8 @@ def print_login_result(users_list: list[dict]):
             print(f'Password: {v}')
             print('Status: ', end='')
             try:
-                print('OK' if is_valid_username_and_psw(k, v) and is_exist(k, v) else 'FAIL')
-            except (ValidateException, LoginException) as e:
+                print('OK' if is_valid_username_and_psw(k, v) else 'FAIL')
+            except ValidateException as e:
                 print(e)
             finally:
                 print('-----')
@@ -67,7 +46,7 @@ def print_login_result(users_list: list[dict]):
 
 if __name__ == '__main__':
     users = [{'user1': 'psw123456'}, {'user1&': 'psw123456'},
-             {'user1': 'psw 2'}, {'user1': 'psw12'},
+             {'user1': 'psw 2'}, {'user1': 'psw12'}, {'': ''}, {None: None},
              {'user1': 'psw123456'}, {'user5': 'psw12345678'}]
 
     print_login_result(users)
