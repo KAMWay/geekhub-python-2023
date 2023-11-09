@@ -1,47 +1,21 @@
 # Напишіть функцію,яка прймає рядок з декількох слів і повертає довжину найкоротшого слова.
 # Реалізуйте обчислення за допомогою генератора.
 
-
-def words_len_iterator_1(str_value: str) -> iter:
-    _count = 0
-    _it = iter(str_value)
-    _ch = next(_it, None)
-
-    while _ch:
-        if _ch == ' ':
-            if _count > 0:
-                yield _count
-            _count = 0
-        else:
-            _count += 1
-        _ch = next(_it, None)
-
-    if _count > 0:
-        yield _count
-
-
-def words_len_iterator_2(str_value: str) -> iter:
-    _count = 0
-    for ch in str_value:
-        if ch == ' ':
-            if _count > 0:
-                yield _count
-            _count = 0
-        else:
-            _count += 1
-
-    if _count > 0:
-        yield _count
-
-
 def get_min_words_len(str_value: str) -> int:
-    def words_len_iterator() -> iter:
-        for word in str_value.split(' '):
-            if len(word) > 0:
-                yield len(word)
+    if len(str_value) == 0:
+        return 0
 
-    return min(words_len_iterator())
+    words_generator = (word for word in str_value.split(' '))
+    word = next(words_generator, None)
+    min_len = 0
+    while word is not None:
+        if len(word) > 0:
+            if min_len == 0 or len(word) < min_len:
+                min_len = len(word)
+        word = next(words_generator, None)
+
+    return min_len
 
 
 if __name__ == '__main__':
-    print(get_min_words_len('fdh hdfhhh  kk  gfff'))
+    print(get_min_words_len('fdh hdfhhh  kkdd  sg fff'))

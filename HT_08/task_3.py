@@ -10,54 +10,32 @@
 #    P.P.S. Для повного розуміння цієї функції - можна почитати документацію по ній: https://docs.python.org/3/library/stdtypes.html#range
 #    P.P.P.S Не забудьте обробляти невалідні ситуації (аналог range(1, -10, 5)). Подивіться як веде себе стандартний range в таких випадках.
 
-def custom_range(*args) -> iter:
-    def is_valid_args(*args) -> bool:
-        return 1 <= len(args) <= 3 and all([isinstance(arg, int) for arg in args])
 
-    def inner_range(start: int, stop: int, steep: int = 1) -> iter:
-        if start > stop and steep > 0:
-            iter(())
+def custom_range(start: int, stop: int, steep: int = 1) -> iter:
+    if steep == 0:
+        raise ValueError('range steep is zero')
 
-        __item = start
-        __ind = 1 if steep > 0 else -1
-        while __item * __ind < stop * __ind:
-            yield __item
-            __item += steep
-
-    if is_valid_args(*args):
-        if len(args) == 1:
-            return inner_range(start=0, stop=args[0])
-        elif len(args) == 2:
-            return inner_range(start=args[0], stop=args[1])
-        elif len(args) == 3:
-            return inner_range(start=args[0], stop=args[1], steep=args[2])
-    else:
+    if start > stop and steep > 0:
         return iter(())
+
+    item = start
+    ind = 1 if steep > 0 else -1
+    while item * ind < stop * ind:
+        yield item
+        item += steep
 
 
 if __name__ == '__main__':
-    for i in custom_range(5, 10, 2):
-        print(i)
+    print(f'Test1: {list(custom_range(5, 10)) == [5, 6, 7, 8, 9]}')
+    print(f'Test2: {list(custom_range(10, 5, -1)) == [10, 9, 8, 7, 6]}')
 
-    print('--------------')
-    for i in custom_range(10, 5, -1):
-        print(i)
+    print(f'Test4: {list(custom_range(0, 10, 50)) == [0]}')
+    print(f'Test5: {list(custom_range(10, 5)) == []}')
 
-    print('--------------')
-    for i in custom_range(10, 5, None):
-        print(i)
+    print(f'Test6: {list(custom_range(5, 10, 3)) == [5, 8]}')
+    print(f'Test7: {list(custom_range(10, 5, -4)) == [10, 6]}')
 
-    print('--------------')
-    for i in custom_range(10, 5, 1):
-        print(i)
-
-    print('--------------')
-    for i in custom_range(10):
-        print(i)
-
-    print('--------------')
-    for i in custom_range(10, 5, 1):
-        print(i)
-
-    for i in custom_range(1, 10, 2):
-        print(i)
+    try:
+        list(custom_range(10, 5, 0))
+    except ValueError as e:
+        print(f'Test8: ValueError -> {e}')

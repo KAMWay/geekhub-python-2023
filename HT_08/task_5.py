@@ -1,4 +1,7 @@
-# Напишіть функцію,яка приймає на вхід рядок та повертає кількість окремих регістро-незалежних букв та цифр, які зустрічаються в рядку більше ніж 1 раз. Рядок буде складатися лише з цифр та букв (великих і малих). Реалізуйте обчислення за допомогою генератора.
+# Напишіть функцію,яка приймає на вхід рядок та повертає кількість окремих регістро-незалежних букв та цифр, які
+# зустрічаються в рядку більше ніж 1 раз. Рядок буде складатися лише з цифр та букв (великих і малих).
+# Реалізуйте обчислення за допомогою генератора.
+
 #     Example (input string -> result):
 #     "abcde" -> 0            # немає символів, що повторюються
 #     "aabbcde" -> 2          # 'a' та 'b'
@@ -10,21 +13,17 @@
 
 
 def get_repeatable_count(str_value: str) -> int:
-    def get_repeatable_chars() -> iter:
-        __str_value_lower = str_value.lower()
+    str_value_lower = str_value.lower()
 
-        __it = iter(set(str_value.lower()))
-        __ch = next(__it, None)
-        while __ch:
-            if __str_value_lower.count(__ch) > 1:
-                yield __ch
-            __ch = next(__it, None)
+    ch_generator = (ch for ch in set(str_value_lower))
+    ch = next(ch_generator, None)
+    count = 0
+    while ch:
+        if str_value_lower.count(ch) > 1:
+            count += 1
+        ch = next(ch_generator, None)
 
-    _count = 0
-    for _ in get_repeatable_chars():
-        _count += 1
-
-    return _count
+    return count
 
 
 if __name__ == '__main__':

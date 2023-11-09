@@ -6,15 +6,25 @@
 #     array_diff([1, 2, 2, 2, 4, 3, 4], [2]) --> [1, 4, 3, 4]
 
 
-def array_diff(items1: list, items2: list) -> iter:
-    def item_diff() -> iter:
-        for item in items1:
-            if item not in items2:
-                yield item
+def array_diff(items1: list, items2: list) -> list:
+    if len(items2) == 0:
+        return items1.copy()
+    if len(items1) == 0:
+        return []
 
-    return list(item_diff())
+    items = []
+    items1_generator = (item for item in items1)
+    while True:
+        try:
+            item = next(items1_generator)
+        except StopIteration:
+            return items
+
+        if item not in items2:
+            items.append(item)
 
 
 if __name__ == '__main__':
+    print(array_diff([1, 2], []))
     print(array_diff([1, 2], [1]))
     print(array_diff([1, 2, 2, 2, 4, 3, 4], [2]))
