@@ -36,32 +36,6 @@ def close_connection(con):
         con.close()
 
 
-def db_insert(table_name: str, values: dict):
-    fields = values.keys()
-    values = [values.get(i) for i in fields]
-
-    with get_connection() as con:
-        sql = f"INSERT INTO {table_name} ({','.join(fields)} VALUES ({['?,' for _ in values]}))"
-        cur = con.cursor()
-        cur.execute(sql, values)
-
-
-def db_select_all(table_name: str, fields: set) -> list[dict]:
-    con = None
-    try:
-        con = get_connection()
-        cur = con.cursor()
-
-        sql = f"SELECT {'?,'.join(fields)} FROM {table_name}"
-        cur.execute(sql)
-
-        return cur.fetchall()
-    except Exception:
-        raise ATMException('Select Exception')
-    finally:
-        close_connection(con)
-
-
 def db_get_user(username: str, password: str) -> [int, None]:
     con = None
     try:
@@ -73,7 +47,7 @@ def db_get_user(username: str, password: str) -> [int, None]:
 
         data = cur.fetchone()
         return data[0] if data else None
-    except Exception:
+    except sqlite3.Error:
         raise ATMException("can't login")
     finally:
         close_connection(con)
@@ -90,7 +64,7 @@ def db_save_user(username: str, password: str) -> int:
         con.commit()
 
         return data[0]
-    except Exception:
+    except sqlite3.Error:
         raise ATMException('save user exception')
     finally:
         close_connection(con)
@@ -107,7 +81,7 @@ def db_get_user_balance(user: int) -> float:
 
         data = cur.fetchone()
         return data[0] if data else 0
-    except Exception:
+    except sqlite3.Error:
         raise ATMException('get balance exception')
     finally:
         close_connection(con)
@@ -128,7 +102,7 @@ def db_save_user_balance(user: int, balance: [int, float]):
         cur.execute(sql, (balance, user))
 
         con.commit()
-    except Exception:
+    except sqlite3.Error:
         raise ATMException('save balance exception')
     finally:
         close_connection(con)
@@ -147,7 +121,7 @@ def db_get_user_transactions(user: int) -> list[dict]:
         rows = cur.fetchall()
 
         return [{'date': row['dt'], 'amount': row['amount'], 'balance': row['balance']} for row in rows]
-    except Exception:
+    except sqlite3.Error:
         raise ATMException("can't get transactions")
     finally:
         close_connection(con)
@@ -165,7 +139,7 @@ def db_save_user_transaction(user: int, amount: [int, float], balance: [int, flo
         cur.execute(sql, (user, datetime.now(), amount, balance))
 
         con.commit()
-    except Exception:
+    except sqlite3.Error:
         raise ATMException("can't save transactions")
     finally:
         close_connection(con)
@@ -184,7 +158,7 @@ def db_get_banknotes(atm: int = 1) -> list[dict[int:int]]:
         rows = cur.fetchall()
 
         return [{'denomination': row['denomination'], 'amount': row['amount']} for row in rows]
-    except Exception:
+    except sqlite3.Error:
         raise ATMException("can't get banknotes")
     finally:
         close_connection(con)
@@ -205,7 +179,7 @@ def db_save_banknotes(denomination: int, amount: int = 0, atm: int = 1):
         cur.execute(sql, (amount, denomination, atm))
 
         con.commit()
-    except Exception:
+    except sqlite3.Error:
         raise ATMException('save banknotes exception')
     finally:
         close_connection(con)
@@ -216,16 +190,15 @@ def get_atm_balance(atm: int = 1) -> int:
 
 
 def change_user_balance(user: int, amount: [int, float]) -> float:
-    min_banknote = min(get_available_banknotes_denomination())
     user_balance = db_get_user_balance(user)
-    atm_balance = get_atm_balance()
-
     if amount < 0 and user_balance < -amount:
         raise ATMException('insufficient user funds')
 
+    atm_balance = get_atm_balance()
     if amount < 0 and atm_balance < -amount:
         raise ATMException('insufficient ATM funds')
 
+    min_banknote = min(get_available_banknotes_denomination())
     back_amount = abs(amount % (min_banknote if amount > 0 else -min_banknote))
     amount = amount - (back_amount if amount > 0 else - back_amount)
 
@@ -286,8 +259,8 @@ def get_amount() -> float:
         raise ATMException('incorrect input amount')
 
 
-def get_available_banknotes_denomination() -> list:
-    return [10, 20, 50, 100, 200, 500, 1000]
+def get_available_banknotes_denomination() -> tuple:
+    return 10, 20, 50, 100, 200, 500, 1000
 
 
 def get_banknotes_amount() -> dict[str:int]:
@@ -339,7 +312,7 @@ def get_command_result(user: int, command: int) -> str:
     if command == 2 or command == 3:
         amount = get_amount()
         back_amount = change_user_balance(user, amount if command == 2 else -amount)
-        return 'Done' if back_amount == 0 else f'Return {back_amount}'
+        return 'Done' if back_amount == 0 else f'Return {round(back_amount, 2)}'
 
     if command == 4:
         str_generator = ('Date {} Amount: {}'.format(item.get('date'), item.get('amount'))
@@ -369,9 +342,9 @@ def start():
     while user and (not command or command != 5):
         command = get_command(user)
         try:
-            print()
+            print('- - - - - - - - - - - -')
             print(get_command_result(user, command))
-            print()
+            print('- - - - - - - - - - - -')
             print()
         except ATMException as e:
             print(f'Command exception: {e}')
@@ -379,47 +352,5 @@ def start():
     print('Program complete')
 
 
-def custom_tests_user():
-    test_user = login('test_user', 'test_user')
-    if not test_user:
-        test_user = sign_up('test_user', 'test_user')
-
-    if test_user:
-        print('Sign in/up: Done')
-    else:
-        return
-
-    test_user_balance = db_get_user_balance(test_user)
-    print('Get user balance: Done')
-    if change_user_balance(test_user, 1) == 1:
-        print('Change user balance 1: Done')
-
-    min_banknote = min(get_available_banknotes_denomination())
-    back_amount = change_user_balance(test_user, 100 + min_banknote - 0.5)
-    if back_amount == min_banknote - 0.5:
-        print('Change user balance 2: Done')
-
-    if db_get_user_balance(test_user) - test_user_balance == 100:
-        print('Change user balance 3: Done')
-
-    test_user_balance = db_get_user_balance(test_user)
-    back_amount = change_user_balance(test_user, -min_banknote - min_banknote + 1)
-    if back_amount == min_banknote:
-        print('Change user balance 4: Done')
-
-    if db_get_user_balance(test_user) - test_user_balance == -min_banknote:
-        print('Change user balance 5: Done')
-
-    test_user_transactions = db_get_user_transactions(test_user)
-    count = len(test_user_transactions)
-    if count > 1 and test_user_transactions[count - 1].get('amount') == -min_banknote:
-        print('Log transactions: Done')
-
-
 if __name__ == '__main__':
-    # start()
-
-    try:
-        custom_tests_user()
-    except Exception as e:
-        print(f'{e}')
+    start()
