@@ -46,14 +46,15 @@ def db_get_user(username: str, password: str) -> [int, None]:
         cur.execute(sql, (username, password))
 
         data = cur.fetchone()
-        return data[0] if data else None
+        if data:
+            return data[0]
     except sqlite3.Error:
         raise ATMException("can't login")
     finally:
         close_connection(con)
 
 
-def db_save_user(username: str, password: str) -> int:
+def db_insert_user(username: str, password: str) -> int:
     con = None
     try:
         con = get_connection()
@@ -80,30 +81,39 @@ def db_get_user_balance(user: int) -> float:
         cur.execute(sql, (user,))
 
         data = cur.fetchone()
-        return data[0] if data else 0
+        if data:
+            return data[0]
     except sqlite3.Error:
         raise ATMException('get balance exception')
     finally:
         close_connection(con)
 
 
-def db_save_user_balance(user: int, balance: [int, float]):
+def db_update_user_balance(user: int, balance: [int, float]):
     con = None
     try:
         con = get_connection()
         cur = con.cursor()
-
-        sql = "SELECT user_id FROM user_balance WHERE user_id=?"
-        cur.execute(sql, (user,))
-        if len(cur.fetchall()) > 0:
-            sql = "UPDATE user_balance SET balance=? WHERE user_id=?"
-        else:
-            sql = "INSERT INTO user_balance (balance, user_id) VALUES (?,?)"
-        cur.execute(sql, (balance, user))
-
+        cur.execute("UPDATE user_balance SET balance=? WHERE user_id=?",
+                    (balance, user))
         con.commit()
     except sqlite3.Error:
         raise ATMException('save balance exception')
+    finally:
+        close_connection(con)
+
+
+def db_insert_user_balance(user: int, balance: [int, float]):
+    con = None
+    try:
+        con = get_connection()
+        cur = con.cursor()
+        cur.execute("INSERT INTO user_balance (balance, user_id) VALUES (?,?)",
+                    (balance, user))
+        con.commit()
+    except sqlite3.Error:
+        raise ATMException('save balance exception')
+
     finally:
         close_connection(con)
 
@@ -127,7 +137,7 @@ def db_get_user_transactions(user: int) -> list[dict]:
         close_connection(con)
 
 
-def db_save_user_transaction(user: int, amount: [int, float], balance: [int, float]):
+def db_insert_user_transaction(user: int, amount: [int, float], balance: [int, float]):
     from datetime import datetime
     con = None
     try:
@@ -145,7 +155,7 @@ def db_save_user_transaction(user: int, amount: [int, float], balance: [int, flo
         close_connection(con)
 
 
-def db_get_banknotes(atm: int = 1) -> list[dict[int:int]]:
+def db_get_banknotes(atm: int = 1) -> list[dict]:
     con = None
     try:
         con = get_connection()
@@ -164,19 +174,34 @@ def db_get_banknotes(atm: int = 1) -> list[dict[int:int]]:
         close_connection(con)
 
 
-def db_save_banknotes(denomination: int, amount: int = 0, atm: int = 1):
+def db_get_banknote(denomination: int, atm: int = 1) -> dict:
+    con = None
+    try:
+        con = get_connection()
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+
+        sql = "SELECT atm_id, denomination, amount FROM atm_banknotes WHERE denomination=? AND atm_id=?"
+        cur.execute(sql, (denomination, atm))
+
+        row = cur.fetchone()
+
+        if row:
+            return {'denomination': row['denomination'], 'amount': row['amount']}
+    except sqlite3.Error:
+        raise ATMException('save banknotes exception')
+    finally:
+        close_connection(con)
+
+
+def db_update_banknote(denomination: int, amount: int = 0, atm: int = 1):
     con = None
     try:
         con = get_connection()
         cur = con.cursor()
 
-        sql = "SELECT denomination FROM atm_banknotes WHERE denomination=? AND atm_id=?"
-        cur.execute(sql, (denomination, atm))
-        if len(cur.fetchall()) > 0:
-            sql = "UPDATE atm_banknotes SET amount=? WHERE denomination=? AND atm_id=?"
-        else:
-            sql = "INSERT INTO atm_banknotes (amount, denomination, atm_id) VALUES (?, ?, ?)"
-        cur.execute(sql, (amount, denomination, atm))
+        cur.execute("UPDATE atm_banknotes SET amount=? WHERE denomination=? AND atm_id=?",
+                    (amount, denomination, atm))
 
         con.commit()
     except sqlite3.Error:
@@ -185,12 +210,48 @@ def db_save_banknotes(denomination: int, amount: int = 0, atm: int = 1):
         close_connection(con)
 
 
+def db_insert_banknote(denomination: int, amount: int = 0, atm: int = 1):
+    con = None
+    try:
+        con = get_connection()
+        cur = con.cursor()
+
+        cur.execute("INSERT INTO atm_banknotes (amount, denomination, atm_id) VALUES (?, ?, ?)",
+                    (amount, denomination, atm))
+
+        con.commit()
+    except sqlite3.Error:
+        raise ATMException('save banknotes exception')
+    finally:
+        close_connection(con)
+
+
+def save_banknote(denomination: int, amount: int = 0, atm: int = 1):
+    if db_get_banknote(denomination):
+        db_update_banknote(denomination, amount, atm)
+    else:
+        db_insert_banknote(denomination, amount, atm)
+
+
 def get_atm_balance(atm: int = 1) -> int:
     return sum(i.get('denomination') * i.get('amount') for i in db_get_banknotes(atm))
 
 
-def change_user_balance(user: int, amount: [int, float]) -> float:
+def get_user_balance(user: int) -> float:
     user_balance = db_get_user_balance(user)
+    return user_balance if user_balance else 0
+
+
+def save_user_balance(user: int, amount: [int, float]):
+    if db_get_user_balance(user):
+        db_update_user_balance(user, amount)
+    else:
+        db_insert_user_balance(user, amount)
+
+
+def change_user_balance(user: int, amount: [int, float]) -> float:
+    user_balance = get_user_balance(user)
+
     if amount < 0 and user_balance < -amount:
         raise ATMException('insufficient user funds')
 
@@ -206,8 +267,8 @@ def change_user_balance(user: int, amount: [int, float]) -> float:
         return back_amount
 
     user_balance += amount
-    db_save_user_balance(user, user_balance)
-    db_save_user_transaction(user, amount, user_balance)
+    save_user_balance(user, user_balance)
+    db_insert_user_transaction(user, amount, user_balance)
 
     return back_amount if amount > 0 else -amount
 
@@ -224,7 +285,7 @@ def login(username: str, psw: str) -> int:
 
 
 def sign_up(username: str, psw: str) -> int:
-    return db_save_user(username, psw)
+    return db_insert_user(username, psw)
 
 
 def get_user() -> int:
@@ -273,7 +334,7 @@ def get_banknotes_amount() -> dict[str:int]:
         if amount <= 0:
             raise ValueError
 
-        return {'denomination': banknote, 'amount': int(input('Input amount: '))}
+        return {'denomination': banknote, 'amount': amount}
     except ValueError:
         raise ATMException('incorrect input banknotes')
 
@@ -307,7 +368,7 @@ def get_command_result(user: int, command: int) -> str:
         return 'User exit'
 
     if command == 1:
-        return f'Total deposit: {db_get_user_balance(user)}'
+        return f'Total deposit: {get_user_balance(user)}'
 
     if command == 2 or command == 3:
         amount = get_amount()
@@ -321,7 +382,7 @@ def get_command_result(user: int, command: int) -> str:
 
     if user == 1 and command == 6:
         banknote = get_banknotes_amount()
-        db_save_banknotes(banknote.get('denomination'), banknote.get('amount'))
+        save_banknote(banknote.get('denomination'), banknote.get('amount'))
         return 'Done'
 
     if user == 1 and command == 7:
