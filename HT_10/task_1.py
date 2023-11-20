@@ -331,7 +331,7 @@ def get_banknotes_amount() -> dict[str:int]:
             raise ValueError
 
         amount = int(input('Input amount: '))
-        if amount <= 0:
+        if amount < 0:
             raise ValueError
 
         return {'denomination': banknote, 'amount': amount}
@@ -340,18 +340,19 @@ def get_banknotes_amount() -> dict[str:int]:
 
 
 def get_command(user: int) -> int:
-    count_commands = 7 if user == 1 else 5
+    count_commands = 8 if user == 1 else 6
     while True:
         print('----Available ATM commands----')
-        print('1. Show total balance')
-        print('2. Top-up balance')
-        print('3. Deposit money')
-        print('4. Transaction history')
-        print('5. Exit')
+        print('1. Show total user deposit')
+        print('2. Show total ATM deposit')
+        print('3. Top-up balance')
+        print('4. Deposit money')
+        print('5. Transaction history')
+        print('6. Exit')
 
-        if (user == 1):
-            print('6. Administrator: update banknotes')
-            print('7. Administrator: available banknotes')
+        if user == 1:
+            print('7. Administrator: update banknotes')
+            print('8. Administrator: available banknotes')
 
         print('------------------------')
         try:
@@ -364,28 +365,31 @@ def get_command(user: int) -> int:
 
 
 def get_command_result(user: int, command: int) -> str:
-    if command == 5:
+    if command == 6:
         return 'User exit'
 
     if command == 1:
-        return f'Total deposit: {get_user_balance(user)}'
+        return f'Total user deposit: {get_user_balance(user)}'
 
-    if command == 2 or command == 3:
+    if command == 2:
+        return f'Total ATM deposit: {get_atm_balance()}'
+
+    if command == 3 or command == 4:
         amount = get_amount()
-        back_amount = change_user_balance(user, amount if command == 2 else -amount)
+        back_amount = change_user_balance(user, amount if command == 3 else -amount)
         return 'Done' if back_amount == 0 else f'Return {round(back_amount, 2)}'
 
-    if command == 4:
+    if command == 5:
         str_generator = ('Date {} Amount: {}'.format(item.get('date'), item.get('amount'))
                          for item in db_get_user_transactions(user))
         return '\n'.join(str_generator)
 
-    if user == 1 and command == 6:
+    if user == 1 and command == 7:
         banknote = get_banknotes_amount()
         save_banknote(banknote.get('denomination'), banknote.get('amount'))
         return 'Done'
 
-    if user == 1 and command == 7:
+    if user == 1 and command == 8:
         str_generator = (f"Denomination {item.get('denomination')} Amount: {item.get('amount')}"
                          for item in db_get_banknotes())
         return '\n'.join(str_generator)
@@ -400,7 +404,7 @@ def start():
         print(f'Login exception: {e}')
 
     command = None
-    while user and (not command or command != 5):
+    while user and (not command or command != 6):
         command = get_command(user)
         try:
             print('- - - - - - - - - - - -')
