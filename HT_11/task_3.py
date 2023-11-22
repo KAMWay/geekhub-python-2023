@@ -103,26 +103,30 @@ class UserService:
             return self.__user_repository.create(username, password)
 
 
-class UserATMService:
+class UserBalanceService:
     def __init__(self):
         self.__user_balance_repository = UserBalanceRepository()
-        self.__user_transaction_repository = UserTransactionRepository()
 
-    def get_balance(self, user: int) -> float:
+    def get(self, user: int) -> float:
         user_balance = self.__user_balance_repository.get_by_user_id(user)
         return user_balance if user_balance else 0
 
-    def save_balance(self, user: int, amount: [int, float]):
+    def save(self, user: int, amount: [int, float]):
         if self.__user_balance_repository.get_by_user_id(user):
             self.__user_balance_repository.update(user, amount)
         else:
             self.__user_balance_repository.insert(user, amount)
 
-    def save_transaction(self, user: int, amount: [int, float], balance: [int, float]):
-        self.__user_transaction_repository.insert(user, amount, balance)
 
-    def get_transactions(self, user: int) -> list[dict]:
+class UserTransactionService:
+    def __init__(self):
+        self.__user_transaction_repository = UserTransactionRepository()
+
+    def get_all(self, user: int) -> list[dict]:
         return self.__user_transaction_repository.get_all_by_user_id(user)
+
+    def save(self, user: int, amount: [int, float], balance: [int, float]):
+        self.__user_transaction_repository.insert(user, amount, balance)
 
 
 class UserRepository:
@@ -246,23 +250,24 @@ class UserTransactionRepository:
 
 class ATMService:
     def __init__(self):
-        self.__atm_repository = ATMBanknoteRepository()
-        self.__user_service = UserATMService()
+        self.__banknote_repository = ATMBanknoteRepository()
+        self.__user_balance_service = UserBalanceService()
+        self.__user_transaction_service = UserTransactionService()
 
     def save_banknote(self, denomination: int, amount: int = 0, atm: int = 1):
-        if self.__atm_repository.get_by_denomination(denomination):
-            self.__atm_repository.update(denomination, amount, atm)
+        if self.__banknote_repository.get_by_denomination(denomination):
+            self.__banknote_repository.update(denomination, amount, atm)
         else:
-            self.__atm_repository.insert(denomination, amount, atm)
+            self.__banknote_repository.insert(denomination, amount, atm)
 
     def get_atm_balance(self, atm: int = 1) -> int:
-        return sum(i.get('denomination') * i.get('amount') for i in self.__atm_repository.get_all(atm))
+        return sum(i.get('denomination') * i.get('amount') for i in self.__banknote_repository.get_all(atm))
 
     def get_user_balance(self, user: int) -> float:
-        return self.__user_service.get_balance(user)
+        return self.__user_balance_service.get(user)
 
     def get_banknotes(self, atm: int = 1) -> list[dict]:
-        return self.__atm_repository.get_all(atm)
+        return self.__banknote_repository.get_all(atm)
 
     @staticmethod
     def get_available_denomination() -> tuple:
@@ -270,7 +275,7 @@ class ATMService:
 
     def __get_bonus_percent(self, user: int, bonus_size: int = 10) -> float:
         from random import randrange
-        if len(self.__user_service.get_transactions(user)) != 0:
+        if len(self.__user_transaction_service.get_all(user)) != 0:
             return 0
 
         return bonus_size / 100 if not randrange(0, 9, 1) else 0
@@ -295,13 +300,13 @@ class ATMService:
         amount += amount * self.__get_bonus_percent(user) if amount > 0 else 0
         user_balance += amount
 
-        self.__user_service.save_balance(user, user_balance)
-        self.__user_service.save_transaction(user, amount, user_balance)
+        self.__user_balance_service.save(user, user_balance)
+        self.__user_transaction_service.save(user, amount, user_balance)
 
         return back_amount if amount > 0 else -amount
 
     def get_user_transactions(self, user: int):
-        return self.__user_service.get_transactions(user)
+        return self.__user_transaction_service.get_all(user)
 
 
 class ATMBanknoteRepository:
