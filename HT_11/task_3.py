@@ -20,7 +20,6 @@ class Connection:
 
 
 class ConsoleReader:
-
     @staticmethod
     def get_username_and_password() -> [str, str]:
         print('----Please Sign In/Up----')
@@ -127,6 +126,20 @@ class UserTransactionService:
 
     def save(self, user: int, amount: [int, float], balance: [int, float]):
         self.__user_transaction_repository.insert(user, amount, balance)
+
+
+class ATMBanknoteService:
+    def __init__(self):
+        self.__banknote_repository = ATMBanknoteRepository()
+
+    def save(self, denomination: int, amount: int = 0, atm: int = 1):
+        if self.__banknote_repository.get_by_denomination(denomination):
+            self.__banknote_repository.update(denomination, amount, atm)
+        else:
+            self.__banknote_repository.insert(denomination, amount, atm)
+
+    def get_all(self, atm: int = 1) -> list[dict]:
+        return self.__banknote_repository.get_all(atm)
 
 
 class UserRepository:
@@ -319,24 +332,15 @@ class ATMBanknoteRepository:
 
 class ATMService:
     def __init__(self):
-        self.__banknote_repository = ATMBanknoteRepository()
+        self.__banknote_service = ATMBanknoteService()
         self.__user_balance_service = UserBalanceService()
         self.__user_transaction_service = UserTransactionService()
 
     def __save_banknote(self, denomination: int, amount: int = 0, atm: int = 1):
-        if self.__banknote_repository.get_by_denomination(denomination):
-            self.__banknote_repository.update(denomination, amount, atm)
-        else:
-            self.__banknote_repository.insert(denomination, amount, atm)
+        self.__banknote_service.save(denomination, amount, atm)
 
     def __get_atm_balance(self, atm: int = 1) -> int:
-        return sum(i.get('denomination') * i.get('amount') for i in self.__banknote_repository.get_all(atm))
-
-    def __get_user_balance(self, user: int) -> float:
-        return self.__user_balance_service.get(user)
-
-    def __get_banknotes(self, atm: int = 1) -> list[dict]:
-        return self.__banknote_repository.get_all(atm)
+        return sum(i.get('denomination') * i.get('amount') for i in self.__banknote_service.get_all(atm))
 
     def __get_bonus_percent(self, user: int, bonus_size: int = 10) -> float:
         from random import randrange
@@ -345,13 +349,13 @@ class ATMService:
 
         return bonus_size / 100 if not randrange(0, 9, 1) else 0
 
-    def __change_user_balance(self, user: int, amount: [int, float]) -> float:
-        user_balance = self.__get_user_balance(user)
+    def __change_user_balance(self, user: int, amount: [int, float], atm: int = 1) -> float:
+        user_balance = self.__user_balance_service.get(user)
 
         if amount < 0 and user_balance < -amount:
             raise ATMException('insufficient user funds')
 
-        atm_balance = self.__get_atm_balance()
+        atm_balance = self.__get_atm_balance(atm)
         if amount < 0 and atm_balance < -amount:
             raise ATMException('insufficient ATM funds')
 
@@ -373,15 +377,15 @@ class ATMService:
     def __get_user_transactions(self, user: int):
         return self.__user_transaction_service.get_all(user)
 
-    def get_command_result(self, user: User, command: int) -> str:
+    def get_command_result(self, user: User, command: int, atm: int = 1) -> str:
         if command == 6:
             return 'User exit'
 
         if command == 1:
-            return f'Total user deposit: {self.__get_user_balance(user.id)}'
+            return f'Total user deposit: {self.__user_balance_service.get(user.id)}'
 
         if command == 2:
-            return f'Total ATM deposit: {self.__get_atm_balance()}'
+            return f'Total ATM deposit: {self.__get_atm_balance(atm)}'
 
         if command == 3 or command == 4:
             amount = ConsoleReader.get_amount()
@@ -400,7 +404,7 @@ class ATMService:
 
         if user.id == 1 and command == 8:
             str_generator = (f"Denomination {item.get('denomination')} Amount: {item.get('amount')}"
-                             for item in self.__get_banknotes())
+                             for item in self.__banknote_service.get_all())
             return '\n'.join(str_generator)
 
     @staticmethod
