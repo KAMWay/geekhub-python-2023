@@ -19,13 +19,51 @@ class Connection:
             con.close()
 
 
+class User:
+    def __init__(self, id: [int, None], username: str, password: str):
+        self.id = id
+        self.username = username
+        self.password = password
+
+    def is_new(self):
+        return self.id is None
+
+    def is_admin(self):
+        return self.id == 1
+
+
+class ATM:
+    def __init__(self, id: int = 1):
+        self.id = id
+
+
+class Banknote:
+    def __init__(self, denomination: int, amount: int):
+        self.id = id
+        self.denomination = denomination
+        self.amount = amount
+
+
+class Transaction:
+    from datetime import datetime
+
+    def __init__(self, user_id: int, dt: [datetime, None], amount: [float, int], balance: [float, int]):
+        from datetime import datetime
+        dt = datetime.now() if not dt else dt
+
+        self.user_id = user_id
+        self.dt = dt
+        self.amount = amount
+        self.balance = balance
+
+
 class ConsoleReader:
     @staticmethod
-    def get_username_and_password() -> [str, str]:
+    def get_user() -> User:
         print('----Please Sign In/Up----')
         username = input('Enter user name: ')
         password = input('Enter password: ')
-        return username, password
+        return User(None, username, password)
 
     @staticmethod
     def get_amount() -> float:
@@ -38,7 +76,7 @@ class ConsoleReader:
             raise ATMException('incorrect input amount')
 
     @staticmethod
-    def get_banknotes_amount() -> dict[str:int]:
+    def get_banknote_amount() -> Banknote:
         try:
             banknote = int(input('Input banknotes denomination [10, 20, 50, 100, 200, 500, 1000]: '))
             if banknote not in ATMService.get_available_denomination():
@@ -48,12 +86,12 @@ class ConsoleReader:
             if amount < 0:
                 raise ValueError
 
-            return {'denomination': banknote, 'amount': amount}
+            return Banknote(banknote, amount)
         except ValueError:
             raise ATMException('incorrect input banknotes')
 
     @staticmethod
-    def get_command_from_console(is_admin: bool) -> int:
+    def get_command_from_console(is_admin: bool = False) -> int:
         count_commands = 8 if is_admin else 6
         while True:
             print('----Available ATM commands----')
@@ -78,28 +116,24 @@ class ConsoleReader:
                 print('Incorrect input. Try again.')
 
 
-class User:
-    def __init__(self, id):
-        self.id = id
-
-
 class UserService:
     def __init__(self):
         self.__user_repository = UserRepository()
 
     @staticmethod
-    def __is_valid(username: str, psw: str) -> bool:
-        if not username or not psw:
+    def __is_valid(username: str, password: str) -> bool:
+        if not username or not password:
             raise ATMException("username and password can't be empty")
         return True
 
-    def login(self, username: str, password: str) -> User:
+    def get(self, username: str, password: str) -> User:
         if self.__is_valid(username, password):
             return self.__user_repository.get_by_username_and_password(username, password)
 
-    def sign_up(self, username: str, password: str) -> User:
-        if self.__is_valid(username, password):
-            return self.__user_repository.create(username, password)
+    def save(self, user: User):
+        if self.__is_valid(user.username, user.password):
+            if user.is_new():
+                self.__user_repository.insert(user)
 
 
 class UserBalanceService:
@@ -121,24 +155,24 @@ class UserTransactionService:
     def __init__(self):
         self.__user_transaction_repository = UserTransactionRepository()
 
-    def get_all(self, user: int) -> list[dict]:
+    def get_all(self, user: int) -> list[Transaction]:
         return self.__user_transaction_repository.get_all_by_user_id(user)
 
-    def save(self, user: int, amount: [int, float], balance: [int, float]):
-        self.__user_transaction_repository.insert(user, amount, balance)
+    def save(self, transaction: Transaction):
+        self.__user_transaction_repository.insert(transaction)
 
 
 class ATMBanknoteService:
     def __init__(self):
         self.__banknote_repository = ATMBanknoteRepository()
 
-    def save(self, denomination: int, amount: int = 0, atm: int = 1):
-        if self.__banknote_repository.get_by_denomination(denomination):
-            self.__banknote_repository.update(denomination, amount, atm)
+    def save(self, banknote: Banknote, atm: int = 1):
+        if self.__banknote_repository.get_by_denomination(banknote.denomination):
+            self.__banknote_repository.update(banknote, atm)
         else:
-            self.__banknote_repository.insert(denomination, amount, atm)
+            self.__banknote_repository.insert(banknote, atm)
 
-    def get_all(self, atm: int = 1) -> list[dict]:
+    def get_all(self, atm: int = 1) -> list[Banknote]:
         return self.__banknote_repository.get_all(atm)
 
 
@@ -155,23 +189,24 @@ class UserRepository:
 
             data = cur.fetchone()
             if data:
-                return User(data[0])
+                return User(data[0], username, password)
         except sqlite3.Error:
             raise ATMException("can't login")
         finally:
             Connection.close_connection(con)
 
-    def create(self, username: str, password: str) -> User:
+    def insert(self, user: User):
         con = None
         try:
             con = Connection.get_connection()
             cur = con.cursor()
 
-            cur.execute("INSERT INTO users (username, password) VALUES (?,?) RETURNING id", (username, password))
+            cur.execute("INSERT INTO users (username, password) VALUES (?,?) RETURNING id",
+                        (user.username, user.password))
             data = cur.fetchone()
             con.commit()
 
-            return User(data[0])
+            user.id = data[0]
         except sqlite3.Error:
             raise ATMException('save user exception')
         finally:
@@ -225,7 +260,7 @@ class UserBalanceRepository:
 
 
 class UserTransactionRepository:
-    def get_all_by_user_id(self, user: int) -> list[dict]:
+    def get_all_by_user_id(self, user: int) -> list[Transaction]:
         con = None
         try:
             con = Connection.get_connection()
@@ -237,14 +272,13 @@ class UserTransactionRepository:
 
             rows = cur.fetchall()
 
-            return [{'date': row['dt'], 'amount': row['amount'], 'balance': row['balance']} for row in rows]
+            return [Transaction(user, row['dt'], row['amount'], row['balance']) for row in rows]
         except sqlite3.Error:
             raise ATMException("can't get transactions")
         finally:
             Connection.close_connection(con)
 
-    def insert(self, user: int, amount: [int, float], balance: [int, float]):
-        from datetime import datetime
+    def insert(self, transaction: Transaction):
         con = None
         try:
             con = Connection.get_connection()
@@ -252,7 +286,7 @@ class UserTransactionRepository:
             cur = con.cursor()
 
             sql = "INSERT INTO user_transactions (user_id, dt, amount, balance) VALUES (?, ?, ?, ?)"
-            cur.execute(sql, (user, datetime.now(), amount, balance))
+            cur.execute(sql, (transaction.user_id, transaction.dt, transaction.amount, transaction.balance))
 
             con.commit()
         except sqlite3.Error:
@@ -262,7 +296,7 @@ class UserTransactionRepository:
 
 
 class ATMBanknoteRepository:
-    def get_all(self, atm: int = 1) -> list[dict]:
+    def get_all(self, atm: int = 1) -> list[Banknote]:
         con = None
         try:
             con = Connection.get_connection()
@@ -274,7 +308,7 @@ class ATMBanknoteRepository:
 
             rows = cur.fetchall()
 
-            return [{'denomination': row['denomination'], 'amount': row['amount']} for row in rows]
+            return [Banknote(row['denomination'], row['amount']) for row in rows]
         except sqlite3.Error:
             raise ATMException("can't get banknotes")
         finally:
@@ -299,14 +333,14 @@ class ATMBanknoteRepository:
         finally:
             Connection.close_connection(con)
 
-    def update(self, denomination: int, amount: int = 0, atm: int = 1):
+    def update(self, banknote: Banknote, atm: int = 1):
         con = None
         try:
             con = Connection.get_connection()
             cur = con.cursor()
 
             cur.execute("UPDATE atm_banknotes SET amount=? WHERE denomination=? AND atm_id=?",
-                        (amount, denomination, atm))
+                        (banknote.amount, banknote.denomination, atm))
 
             con.commit()
         except sqlite3.Error:
@@ -314,14 +348,14 @@ class ATMBanknoteRepository:
         finally:
             Connection.close_connection(con)
 
-    def insert(self, denomination: int, amount: int = 0, atm: int = 1):
+    def insert(self, banknote: Banknote, atm: int = 1):
         con = None
         try:
             con = Connection.get_connection()
             cur = con.cursor()
 
             cur.execute("INSERT INTO atm_banknotes (amount, denomination, atm_id) VALUES (?, ?, ?)",
-                        (amount, denomination, atm))
+                        (banknote.amount, banknote.denomination, atm))
 
             con.commit()
         except sqlite3.Error:
@@ -336,21 +370,21 @@ class ATMService:
         self.__user_balance_service = UserBalanceService()
         self.__user_transaction_service = UserTransactionService()
 
-    def __save_banknote(self, denomination: int, amount: int = 0, atm: int = 1):
-        self.__banknote_service.save(denomination, amount, atm)
+    def __save_banknote(self, banknote: Banknote, atm: ATM):
+        self.__banknote_service.save(banknote, atm.id)
 
-    def __get_atm_balance(self, atm: int = 1) -> int:
-        return sum(i.get('denomination') * i.get('amount') for i in self.__banknote_service.get_all(atm))
+    def __get_atm_balance(self, atm: ATM) -> int:
+        return sum(i.denomination * i.amount for i in self.__banknote_service.get_all(atm.id))
 
-    def __get_bonus_percent(self, user: int, bonus_size: int = 10) -> float:
+    def __get_bonus_percent(self, user: User, bonus_size: int = 10) -> float:
         from random import randrange
-        if len(self.__user_transaction_service.get_all(user)) != 0:
+        if len(self.__user_transaction_service.get_all(user.id)) != 0:
             return 0
 
         return bonus_size / 100 if not randrange(0, 9, 1) else 0
 
-    def __change_user_balance(self, user: int, amount: [int, float], atm: int = 1) -> float:
-        user_balance = self.__user_balance_service.get(user)
+    def __change_user_balance(self, user: User, amount: [int, float], atm: ATM) -> float:
+        user_balance = self.__user_balance_service.get(user.id)
 
         if amount < 0 and user_balance < -amount:
             raise ATMException('insufficient user funds')
@@ -369,15 +403,16 @@ class ATMService:
         amount += amount * self.__get_bonus_percent(user) if amount > 0 else 0
         user_balance += amount
 
-        self.__user_balance_service.save(user, user_balance)
-        self.__user_transaction_service.save(user, amount, user_balance)
+        self.__user_balance_service.save(user.id, user_balance)
+        transaction = Transaction(user.id, None, amount, user_balance)
+        self.__user_transaction_service.save(transaction)
 
         return back_amount if amount > 0 else -amount
 
-    def __get_user_transactions(self, user: int):
-        return self.__user_transaction_service.get_all(user)
+    def __get_user_transactions(self, user: User):
+        return self.__user_transaction_service.get_all(user.id)
 
-    def get_command_result(self, user: User, command: int, atm: int = 1) -> str:
+    def get_command_result(self, user: User, command: int, atm: ATM = ATM(1)) -> str:
         if command == 6:
             return 'User exit'
 
@@ -389,21 +424,21 @@ class ATMService:
 
         if command == 3 or command == 4:
             amount = ConsoleReader.get_amount()
-            back_amount = self.__change_user_balance(user.id, amount if command == 3 else -amount)
+            back_amount = self.__change_user_balance(user, (amount if command == 3 else -amount), atm)
             return 'Done' if back_amount == 0 else f'Return {round(back_amount, 2)}'
 
         if command == 5:
-            str_generator = ('Date {} Amount: {}'.format(item.get('date'), item.get('amount'))
-                             for item in self.__get_user_transactions(user.id))
+            str_generator = ('Date {} Amount: {}'.format(item.dt, item.amount)
+                             for item in self.__get_user_transactions(user))
             return '\n'.join(str_generator)
 
-        if user.id == 1 and command == 7:
-            banknote = ConsoleReader.get_banknotes_amount()
-            self.__save_banknote(banknote.get('denomination'), banknote.get('amount'))
+        if user.is_admin() and command == 7:
+            banknote = ConsoleReader.get_banknote_amount()
+            self.__save_banknote(banknote, atm)
             return 'Done'
 
-        if user.id == 1 and command == 8:
-            str_generator = (f"Denomination {item.get('denomination')} Amount: {item.get('amount')}"
+        if user.is_admin() and command == 8:
+            str_generator = (f"Denomination {item.denomination} Amount: {item.amount}"
                              for item in self.__banknote_service.get_all())
             return '\n'.join(str_generator)
 
@@ -414,21 +449,23 @@ class ATMService:
 
 def get_user() -> User:
     count = 3
-    user = None
     user_service = UserService()
-    while not user:
-        username, password = ConsoleReader.get_username_and_password()
+    user = None
+    while not user or user.id is None:
+        user = ConsoleReader.get_user()
 
         try:
-            user = user_service.login(username, password)
-            if not user and input('User not found. To create this user enter 1:') == '1':
-                user = user_service.sign_up(username, password)
+            exist_user = user_service.get(user.username, user.password)
+            if exist_user:
+                return exist_user
+            if input('User not found. To create this user enter 1:') == '1':
+                user_service.save(user)
         except ATMException as e:
-            print(f"Verification exception: {e}")
+            print(f"Sign In/Up exception: {e}")
 
-        if not user and count > 0:
+        if not user.id and count > 0:
             count -= 1
-            print(f'You have {count} attempts. Try again.')
+            print(f'You have {count + 1} attempts. Try again.')
         elif count <= 0:
             raise ATMException("you could not login")
 
@@ -445,7 +482,7 @@ def start():
     command = None
     atm_service = ATMService()
     while user and (not command or command != 6):
-        command = ConsoleReader.get_command_from_console(user.id == 1)
+        command = ConsoleReader.get_command_from_console(user.is_admin())
         try:
             print('- - - - - - - - - - - -')
             print(atm_service.get_command_result(user, command))
