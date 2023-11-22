@@ -248,67 +248,6 @@ class UserTransactionRepository:
             Connection.close_connection(con)
 
 
-class ATMService:
-    def __init__(self):
-        self.__banknote_repository = ATMBanknoteRepository()
-        self.__user_balance_service = UserBalanceService()
-        self.__user_transaction_service = UserTransactionService()
-
-    def save_banknote(self, denomination: int, amount: int = 0, atm: int = 1):
-        if self.__banknote_repository.get_by_denomination(denomination):
-            self.__banknote_repository.update(denomination, amount, atm)
-        else:
-            self.__banknote_repository.insert(denomination, amount, atm)
-
-    def get_atm_balance(self, atm: int = 1) -> int:
-        return sum(i.get('denomination') * i.get('amount') for i in self.__banknote_repository.get_all(atm))
-
-    def get_user_balance(self, user: int) -> float:
-        return self.__user_balance_service.get(user)
-
-    def get_banknotes(self, atm: int = 1) -> list[dict]:
-        return self.__banknote_repository.get_all(atm)
-
-    @staticmethod
-    def get_available_denomination() -> tuple:
-        return 10, 20, 50, 100, 200, 500, 1000
-
-    def __get_bonus_percent(self, user: int, bonus_size: int = 10) -> float:
-        from random import randrange
-        if len(self.__user_transaction_service.get_all(user)) != 0:
-            return 0
-
-        return bonus_size / 100 if not randrange(0, 9, 1) else 0
-
-    def change_user_balance(self, user: int, amount: [int, float]) -> float:
-        user_balance = self.get_user_balance(user)
-
-        if amount < 0 and user_balance < -amount:
-            raise ATMException('insufficient user funds')
-
-        atm_balance = self.get_atm_balance()
-        if amount < 0 and atm_balance < -amount:
-            raise ATMException('insufficient ATM funds')
-
-        min_banknote = min(self.get_available_denomination())
-        back_amount = abs(amount % (min_banknote if amount > 0 else -min_banknote))
-        amount = amount - (back_amount if amount > 0 else - back_amount)
-
-        if amount == 0:
-            return back_amount
-
-        amount += amount * self.__get_bonus_percent(user) if amount > 0 else 0
-        user_balance += amount
-
-        self.__user_balance_service.save(user, user_balance)
-        self.__user_transaction_service.save(user, amount, user_balance)
-
-        return back_amount if amount > 0 else -amount
-
-    def get_user_transactions(self, user: int):
-        return self.__user_transaction_service.get_all(user)
-
-
 class ATMBanknoteRepository:
     def get_all(self, atm: int = 1) -> list[dict]:
         con = None
@@ -378,35 +317,95 @@ class ATMBanknoteRepository:
             Connection.close_connection(con)
 
 
-def get_command_result(user: User, atm_service: ATMService, command: int) -> str:
-    if command == 6:
-        return 'User exit'
+class ATMService:
+    def __init__(self):
+        self.__banknote_repository = ATMBanknoteRepository()
+        self.__user_balance_service = UserBalanceService()
+        self.__user_transaction_service = UserTransactionService()
 
-    if command == 1:
-        return f'Total user deposit: {atm_service.get_user_balance(user.id)}'
+    def __save_banknote(self, denomination: int, amount: int = 0, atm: int = 1):
+        if self.__banknote_repository.get_by_denomination(denomination):
+            self.__banknote_repository.update(denomination, amount, atm)
+        else:
+            self.__banknote_repository.insert(denomination, amount, atm)
 
-    if command == 2:
-        return f'Total ATM deposit: {atm_service.get_atm_balance()}'
+    def __get_atm_balance(self, atm: int = 1) -> int:
+        return sum(i.get('denomination') * i.get('amount') for i in self.__banknote_repository.get_all(atm))
 
-    if command == 3 or command == 4:
-        amount = ConsoleReader.get_amount()
-        back_amount = atm_service.change_user_balance(user.id, amount if command == 3 else -amount)
-        return 'Done' if back_amount == 0 else f'Return {round(back_amount, 2)}'
+    def __get_user_balance(self, user: int) -> float:
+        return self.__user_balance_service.get(user)
 
-    if command == 5:
-        str_generator = ('Date {} Amount: {}'.format(item.get('date'), item.get('amount'))
-                         for item in atm_service.get_user_transactions(user.id))
-        return '\n'.join(str_generator)
+    def __get_banknotes(self, atm: int = 1) -> list[dict]:
+        return self.__banknote_repository.get_all(atm)
 
-    if user.id == 1 and command == 7:
-        banknote = ConsoleReader.get_banknotes_amount()
-        atm_service.save_banknote(banknote.get('denomination'), banknote.get('amount'))
-        return 'Done'
+    def __get_bonus_percent(self, user: int, bonus_size: int = 10) -> float:
+        from random import randrange
+        if len(self.__user_transaction_service.get_all(user)) != 0:
+            return 0
 
-    if user.id == 1 and command == 8:
-        str_generator = (f"Denomination {item.get('denomination')} Amount: {item.get('amount')}"
-                         for item in atm_service.get_banknotes())
-        return '\n'.join(str_generator)
+        return bonus_size / 100 if not randrange(0, 9, 1) else 0
+
+    def __change_user_balance(self, user: int, amount: [int, float]) -> float:
+        user_balance = self.__get_user_balance(user)
+
+        if amount < 0 and user_balance < -amount:
+            raise ATMException('insufficient user funds')
+
+        atm_balance = self.__get_atm_balance()
+        if amount < 0 and atm_balance < -amount:
+            raise ATMException('insufficient ATM funds')
+
+        min_banknote = min(self.get_available_denomination())
+        back_amount = abs(amount % (min_banknote if amount > 0 else -min_banknote))
+        amount = amount - (back_amount if amount > 0 else - back_amount)
+
+        if amount == 0:
+            return back_amount
+
+        amount += amount * self.__get_bonus_percent(user) if amount > 0 else 0
+        user_balance += amount
+
+        self.__user_balance_service.save(user, user_balance)
+        self.__user_transaction_service.save(user, amount, user_balance)
+
+        return back_amount if amount > 0 else -amount
+
+    def __get_user_transactions(self, user: int):
+        return self.__user_transaction_service.get_all(user)
+
+    def get_command_result(self, user: User, command: int) -> str:
+        if command == 6:
+            return 'User exit'
+
+        if command == 1:
+            return f'Total user deposit: {self.__get_user_balance(user.id)}'
+
+        if command == 2:
+            return f'Total ATM deposit: {self.__get_atm_balance()}'
+
+        if command == 3 or command == 4:
+            amount = ConsoleReader.get_amount()
+            back_amount = self.__change_user_balance(user.id, amount if command == 3 else -amount)
+            return 'Done' if back_amount == 0 else f'Return {round(back_amount, 2)}'
+
+        if command == 5:
+            str_generator = ('Date {} Amount: {}'.format(item.get('date'), item.get('amount'))
+                             for item in self.__get_user_transactions(user.id))
+            return '\n'.join(str_generator)
+
+        if user.id == 1 and command == 7:
+            banknote = ConsoleReader.get_banknotes_amount()
+            self.__save_banknote(banknote.get('denomination'), banknote.get('amount'))
+            return 'Done'
+
+        if user.id == 1 and command == 8:
+            str_generator = (f"Denomination {item.get('denomination')} Amount: {item.get('amount')}"
+                             for item in self.__get_banknotes())
+            return '\n'.join(str_generator)
+
+    @staticmethod
+    def get_available_denomination() -> tuple:
+        return 10, 20, 50, 100, 200, 500, 1000
 
 
 def get_user() -> User:
@@ -445,7 +444,7 @@ def start():
         command = ConsoleReader.get_command_from_console(user.id == 1)
         try:
             print('- - - - - - - - - - - -')
-            print(get_command_result(user, atm_service, command))
+            print(atm_service.get_command_result(user, command))
             print('- - - - - - - - - - - -')
             print()
         except ATMException as e:
