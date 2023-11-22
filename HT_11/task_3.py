@@ -20,8 +20,8 @@ class Connection:
 
 
 class User:
-    def __init__(self, id: [int, None], username: str, password: str):
-        self.id = id
+    def __init__(self, user_id: [int, None], username: str, password: str):
+        self.id = user_id
         self.username = username
         self.password = password
 
@@ -33,15 +33,16 @@ class User:
 
 
 class ATM:
-    def __init__(self, id: int = 1):
-        self.id = id
+    def __init__(self, atm_id: int = 1, info: str = ""):
+        self.id = atm_id
+        self.info = info
 
 
 class Banknote:
-    def __init__(self, denomination: int, amount: int):
-        self.id = id
+    def __init__(self, denomination: int, amount: int, atm_id: int = 1):
         self.denomination = denomination
         self.amount = amount
+        self.atm_id = atm_id
 
 
 class Transaction:
@@ -166,14 +167,14 @@ class ATMBanknoteService:
     def __init__(self):
         self.__banknote_repository = ATMBanknoteRepository()
 
-    def save(self, banknote: Banknote, atm: int = 1):
+    def save(self, banknote: Banknote):
         if self.__banknote_repository.get_by_denomination(banknote.denomination):
-            self.__banknote_repository.update(banknote, atm)
+            self.__banknote_repository.update(banknote)
         else:
-            self.__banknote_repository.insert(banknote, atm)
+            self.__banknote_repository.insert(banknote)
 
-    def get_all(self, atm: int = 1) -> list[Banknote]:
-        return self.__banknote_repository.get_all(atm)
+    def get_all(self, atm_id: int = 1) -> list[Banknote]:
+        return self.__banknote_repository.get_all_by_atm_id(atm_id)
 
 
 class UserRepository:
@@ -214,14 +215,14 @@ class UserRepository:
 
 
 class UserBalanceRepository:
-    def get_by_user_id(self, user: int) -> float:
+    def get_by_user_id(self, user_id: int) -> float:
         con = None
         try:
             con = Connection.get_connection()
             cur = con.cursor()
 
             sql = "SELECT balance FROM user_balance WHERE user_id=?"
-            cur.execute(sql, (user,))
+            cur.execute(sql, (user_id,))
 
             data = cur.fetchone()
             if data:
@@ -231,26 +232,26 @@ class UserBalanceRepository:
         finally:
             Connection.close_connection(con)
 
-    def update(self, user: int, balance: [int, float]):
+    def update(self, user_id: int, balance: [int, float]):
         con = None
         try:
             con = Connection.get_connection()
             cur = con.cursor()
             cur.execute("UPDATE user_balance SET balance=? WHERE user_id=?",
-                        (balance, user))
+                        (balance, user_id))
             con.commit()
         except sqlite3.Error:
             raise ATMException('save balance exception')
         finally:
             Connection.close_connection(con)
 
-    def insert(self, user: int, balance: [int, float]):
+    def insert(self, user_id: int, balance: [int, float]):
         con = None
         try:
             con = Connection.get_connection()
             cur = con.cursor()
             cur.execute("INSERT INTO user_balance (balance, user_id) VALUES (?,?)",
-                        (balance, user))
+                        (balance, user_id))
             con.commit()
         except sqlite3.Error:
             raise ATMException('save balance exception')
@@ -260,7 +261,7 @@ class UserBalanceRepository:
 
 
 class UserTransactionRepository:
-    def get_all_by_user_id(self, user: int) -> list[Transaction]:
+    def get_all_by_user_id(self, user_id: int) -> list[Transaction]:
         con = None
         try:
             con = Connection.get_connection()
@@ -268,11 +269,11 @@ class UserTransactionRepository:
             cur = con.cursor()
 
             sql = "SELECT user_id, dt, amount, balance FROM user_transactions WHERE user_id=?"
-            cur.execute(sql, (user,))
+            cur.execute(sql, (user_id,))
 
             rows = cur.fetchall()
 
-            return [Transaction(user, row['dt'], row['amount'], row['balance']) for row in rows]
+            return [Transaction(user_id, row['dt'], row['amount'], row['balance']) for row in rows]
         except sqlite3.Error:
             raise ATMException("can't get transactions")
         finally:
@@ -296,7 +297,7 @@ class UserTransactionRepository:
 
 
 class ATMBanknoteRepository:
-    def get_all(self, atm: int = 1) -> list[Banknote]:
+    def get_all_by_atm_id(self, atm_id: int = 1) -> list[Banknote]:
         con = None
         try:
             con = Connection.get_connection()
@@ -304,17 +305,17 @@ class ATMBanknoteRepository:
             cur = con.cursor()
 
             sql = "SELECT atm_id, denomination, amount FROM atm_banknotes WHERE atm_id=?"
-            cur.execute(sql, (atm,))
+            cur.execute(sql, (atm_id,))
 
             rows = cur.fetchall()
 
-            return [Banknote(row['denomination'], row['amount']) for row in rows]
+            return [Banknote(row['denomination'], row['amount'], atm_id) for row in rows]
         except sqlite3.Error:
             raise ATMException("can't get banknotes")
         finally:
             Connection.close_connection(con)
 
-    def get_by_denomination(self, denomination: int, atm: int = 1) -> dict:
+    def get_by_denomination(self, denomination: int, atm_id: int = 1) -> Banknote:
         con = None
         try:
             con = Connection.get_connection()
@@ -322,25 +323,25 @@ class ATMBanknoteRepository:
             cur = con.cursor()
 
             sql = "SELECT atm_id, denomination, amount FROM atm_banknotes WHERE denomination=? AND atm_id=?"
-            cur.execute(sql, (denomination, atm))
+            cur.execute(sql, (denomination, atm_id))
 
             row = cur.fetchone()
 
             if row:
-                return {'denomination': row['denomination'], 'amount': row['amount']}
+                return Banknote(row['denomination'], row['amount'], atm_id)
         except sqlite3.Error:
             raise ATMException('save banknotes exception')
         finally:
             Connection.close_connection(con)
 
-    def update(self, banknote: Banknote, atm: int = 1):
+    def update(self, banknote: Banknote):
         con = None
         try:
             con = Connection.get_connection()
             cur = con.cursor()
 
             cur.execute("UPDATE atm_banknotes SET amount=? WHERE denomination=? AND atm_id=?",
-                        (banknote.amount, banknote.denomination, atm))
+                        (banknote.amount, banknote.denomination, banknote.atm_id))
 
             con.commit()
         except sqlite3.Error:
@@ -348,14 +349,14 @@ class ATMBanknoteRepository:
         finally:
             Connection.close_connection(con)
 
-    def insert(self, banknote: Banknote, atm: int = 1):
+    def insert(self, banknote: Banknote):
         con = None
         try:
             con = Connection.get_connection()
             cur = con.cursor()
 
             cur.execute("INSERT INTO atm_banknotes (amount, denomination, atm_id) VALUES (?, ?, ?)",
-                        (banknote.amount, banknote.denomination, atm))
+                        (banknote.amount, banknote.denomination, banknote.atm_id))
 
             con.commit()
         except sqlite3.Error:
@@ -370,8 +371,8 @@ class ATMService:
         self.__user_balance_service = UserBalanceService()
         self.__user_transaction_service = UserTransactionService()
 
-    def __save_banknote(self, banknote: Banknote, atm: ATM):
-        self.__banknote_service.save(banknote, atm.id)
+    def __save_banknote(self, banknote: Banknote):
+        self.__banknote_service.save(banknote)
 
     def __get_atm_balance(self, atm: ATM) -> int:
         return sum(i.denomination * i.amount for i in self.__banknote_service.get_all(atm.id))
@@ -434,7 +435,8 @@ class ATMService:
 
         if user.is_admin() and command == 7:
             banknote = ConsoleReader.get_banknote_amount()
-            self.__save_banknote(banknote, atm)
+            banknote.atm_id = atm.id
+            self.__save_banknote(banknote)
             return 'Done'
 
         if user.is_admin() and command == 8:
