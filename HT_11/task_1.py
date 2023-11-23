@@ -55,9 +55,10 @@ class Calc:
 
         Returns
         -------
-        None
+        result of addition operation (a + b): int, float
         """
         self.last_result, self.__result = self.__result, a + b
+        return self.__result
 
     def sub(self, a: [int, float], b: [int, float]) -> [int, float]:
         """
@@ -70,9 +71,10 @@ class Calc:
 
         Returns
         -------
-        None
+        result of subtraction operation (a - b): int, float
         """
         self.last_result, self.__result = self.__result, a - b
+        return self.__result
 
     def mult(self, a: [int, float], b: [int, float]) -> [int, float]:
         """
@@ -85,9 +87,10 @@ class Calc:
 
         Returns
         -------
-        None
+        result of multiplication operation (a * b): int, float
         """
         self.last_result, self.__result = self.__result, a * b
+        return self.__result
 
     def div(self, a: [int, float], b: [int, float]) -> [int, float]:
         """
@@ -101,18 +104,22 @@ class Calc:
 
         Returns
         -------
-        None
+        result of division operation (a / b): int, float
         """
         self.last_result, self.__result = self.__result, a / b
+        return self.__result
 
 
 if __name__ == '__main__':
     calc = Calc()
 
-    print(f"{calc.last_result}")
-    calc.add(1, 1)
-    print(f"{calc.last_result}")
-    calc.mult(2, 3)
-    print(f"{calc.last_result}")
-    calc.mult(3, 4)
-    print(f"{calc.last_result}")
+    print(f"last_result: {calc.last_result}")
+    print(f"result: {calc.add(1, 1)}")
+
+    print(f"last_result: {calc.last_result}")
+    print(f"result: {calc.mult(2, 3)}")
+
+    print(f"last_result: {calc.last_result}")
+    print(f"result: {calc.mult(3, 4)}")
+
+    print(f"last_result: {calc.last_result}")

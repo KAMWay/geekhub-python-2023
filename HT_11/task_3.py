@@ -192,7 +192,7 @@ class UserRepository:
             if data:
                 return User(data[0], username, password)
         except sqlite3.Error:
-            raise ATMException("can't login")
+            raise ATMException("can't get user from database")
         finally:
             Connection.close_connection(con)
 
@@ -209,7 +209,7 @@ class UserRepository:
 
             user.id = data[0]
         except sqlite3.Error:
-            raise ATMException('save user exception')
+            raise ATMException("can't save user to database")
         finally:
             Connection.close_connection(con)
 
@@ -228,7 +228,7 @@ class UserBalanceRepository:
             if data:
                 return data[0]
         except sqlite3.Error:
-            raise ATMException('get balance exception')
+            raise ATMException("can't get balance from database")
         finally:
             Connection.close_connection(con)
 
@@ -241,7 +241,7 @@ class UserBalanceRepository:
                         (balance, user_id))
             con.commit()
         except sqlite3.Error:
-            raise ATMException('save balance exception')
+            raise ATMException("can't update balance in database")
         finally:
             Connection.close_connection(con)
 
@@ -254,7 +254,7 @@ class UserBalanceRepository:
                         (balance, user_id))
             con.commit()
         except sqlite3.Error:
-            raise ATMException('save balance exception')
+            raise ATMException("can't insert balance to database")
 
         finally:
             Connection.close_connection(con)
@@ -275,7 +275,7 @@ class UserTransactionRepository:
 
             return [Transaction(user_id, row['dt'], row['amount'], row['balance']) for row in rows]
         except sqlite3.Error:
-            raise ATMException("can't get transactions")
+            raise ATMException("can't get transactions from database")
         finally:
             Connection.close_connection(con)
 
@@ -291,7 +291,7 @@ class UserTransactionRepository:
 
             con.commit()
         except sqlite3.Error:
-            raise ATMException("can't save transactions")
+            raise ATMException("can't save transactions to database")
         finally:
             Connection.close_connection(con)
 
@@ -311,7 +311,7 @@ class ATMBanknoteRepository:
 
             return [Banknote(row['denomination'], row['amount'], atm_id) for row in rows]
         except sqlite3.Error:
-            raise ATMException("can't get banknotes")
+            raise ATMException("can't get banknotes from database")
         finally:
             Connection.close_connection(con)
 
@@ -330,7 +330,7 @@ class ATMBanknoteRepository:
             if row:
                 return Banknote(row['denomination'], row['amount'], atm_id)
         except sqlite3.Error:
-            raise ATMException('save banknotes exception')
+            raise ATMException("can't get banknote from database")
         finally:
             Connection.close_connection(con)
 
@@ -345,7 +345,7 @@ class ATMBanknoteRepository:
 
             con.commit()
         except sqlite3.Error:
-            raise ATMException('save banknotes exception')
+            raise ATMException("can't update banknotes in database")
         finally:
             Connection.close_connection(con)
 
@@ -360,7 +360,7 @@ class ATMBanknoteRepository:
 
             con.commit()
         except sqlite3.Error:
-            raise ATMException('save banknotes exception')
+            raise ATMException("can't insert banknotes to database")
         finally:
             Connection.close_connection(con)
 
