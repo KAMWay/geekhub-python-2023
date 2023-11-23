@@ -7,6 +7,10 @@ class ATMException(Exception):
     pass
 
 
+class ATMValidateException(ATMException):
+    pass
+
+
 class Connection:
     @staticmethod
     def get_connection():
@@ -61,6 +65,7 @@ class Transaction:
 class ConsoleReader:
     @staticmethod
     def get_user() -> User:
+        print()
         print('----Please Sign In/Up----')
         username = input('Enter user name: ')
         password = input('Enter password: ')
@@ -95,6 +100,7 @@ class ConsoleReader:
     def get_command_from_console(is_admin: bool = False) -> int:
         count_commands = 8 if is_admin else 6
         while True:
+            print()
             print('----Available ATM commands----')
             print('1. Show total user deposit')
             print('2. Show total ATM deposit')
@@ -121,20 +127,20 @@ class UserService:
     def __init__(self):
         self.__user_repository = UserRepository()
 
-    @staticmethod
-    def __is_valid(username: str, password: str) -> bool:
+    def __validate(self, username: str, password: str, is_new: bool = False):
         if not username or not password:
-            raise ATMException("username and password can't be empty")
-        return True
+            raise ATMValidateException("username and password can't be empty")
+        if is_new and self.__user_repository.get_by_username(username):
+            raise ATMValidateException(f"can't used exist username '{username}'")
 
     def get(self, username: str, password: str) -> User:
-        if self.__is_valid(username, password):
-            return self.__user_repository.get_by_username_and_password(username, password)
+        self.__validate(username, password)
+        user = self.__user_repository.get_by_username(username)
+        return None if not user or user.password != password else user
 
     def save(self, user: User):
-        if self.__is_valid(user.username, user.password):
-            if user.is_new():
-                self.__user_repository.insert(user)
+        self.__validate(user.username, user.password, user.is_new())
+        self.__user_repository.insert(user)
 
 
 class UserBalanceService:
@@ -179,18 +185,18 @@ class ATMBanknoteService:
 
 class UserRepository:
 
-    def get_by_username_and_password(self, username: str, password: str) -> [User, None]:
+    def get_by_username(self, username: str) -> [User, None]:
         con = None
         try:
             con = Connection.get_connection()
             cur = con.cursor()
 
-            sql = "SELECT id FROM users WHERE username=? and password=?"
-            cur.execute(sql, (username, password))
+            sql = "SELECT id, username, password FROM users WHERE username=?"
+            cur.execute(sql, (username,))
 
             data = cur.fetchone()
             if data:
-                return User(data[0], username, password)
+                return User(data[0], data[1], data[2])
         except sqlite3.Error:
             raise ATMException("can't get user from database")
         finally:
@@ -460,10 +466,10 @@ def get_user() -> User:
             exist_user = user_service.get(user.username, user.password)
             if exist_user:
                 return exist_user
-            if input('User not found. To create this user enter 1:') == '1':
+            if input(f"User not found. To create '{user.username}' enter 1:") == '1':
                 user_service.save(user)
-        except ATMException as e:
-            print(f"Sign In/Up exception: {e}")
+        except ATMValidateException as e:
+            print(f"Validate exception: {e}")
 
         if not user.id and count > 0:
             count -= 1
