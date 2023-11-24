@@ -49,7 +49,7 @@ class Banknote:
         self.atm_id = atm_id
 
     def __str__(self):
-        return f"{self.denomination}:{self.amount}"
+        return f"{self.amount}x{self.denomination}"
 
 
 class Transaction:
@@ -200,7 +200,7 @@ class BanknoteService:
         ins_banknotes = []
         for cur in change_banknotes:
             if cur.amount == 0:
-                break
+                continue
 
             exist_banknote = self.__get_banknote_by_denomination(cur.denomination, exist_banknotes)
             if exist_banknote:
@@ -217,38 +217,37 @@ class BanknoteService:
         if len(ins_banknotes):
             self.__banknote_repository.insert_all(ins_banknotes)
 
-    def get_amount_combinations(self, amount: int, atm_id: int = 1) -> list[Banknote]:
+    def get_all_by_amount(self, amount: int, atm_id: int = 1) -> list[Banknote]:
         if amount <= 0:
-            return []
+            raise ATMException("can't get banknote combinations for negative amount")
 
-        banknotes = {i.denomination: i.amount for i in self.get_all(atm_id)}
-        combinations = BanknoteService.__amount_combinations(banknotes, amount)
-        return [Banknote(k, v, atm_id) for k, v in combinations.items() if v] if combinations else []
+        try:
+            banknotes = self.__get_combinations(self.get_all(atm_id), amount)
+            if len(banknotes) == 0:
+                raise ATMException
 
-    @staticmethod
-    def __amount_combinations(banknotes: dict, amount: int,
-                              variation_matrix: dict = None, position: int = 0) -> dict:
-        rez_dict = {}
-        if not variation_matrix:
-            variation_matrix = {k: 0 for k in banknotes.keys()}
+            return [i for i in banknotes if i.amount != 0]
+        except Exception:
+            raise ATMException("can't get banknote combinations")
 
-        denominations = sorted(banknotes.keys(), reverse=True)
-        ammounts = [banknotes.get(i) for i in denominations]
+    def __get_combinations(self, banknotes: list[Banknote], amount: int,
+                           combinations: list[Banknote] = None, position: int = 0) -> list[Banknote]:
+        banknotes.sort(key=lambda x: x.denomination, reverse=True)
+        if not combinations:
+            combinations = [Banknote(i.denomination, 0) for i in banknotes]
 
-        value = sum([k * variation_matrix.get(k) for k, v in banknotes.items()])
+        value = sum([i.denomination * i.amount for i in combinations])
 
         if value < amount:
-            for i in range(position, len(denominations)):
-                if ammounts[i] > variation_matrix.get(denominations[i]):
-                    new_variation = variation_matrix.copy()
-                    new_variation[denominations[i]] += 1
-                    new_dict = BanknoteService.__amount_combinations(banknotes, amount, new_variation, i)
-                    if new_dict:
-                        return new_dict
+            for i in range(position, len(banknotes)):
+                if banknotes[i].amount > combinations[i].amount:
+                    new_variation = [i for i in combinations]
+                    new_variation[i] = Banknote(new_variation[i].denomination, new_variation[i].amount + 1)
+                    new_list = self.__get_combinations(banknotes, amount, new_variation, i)
+                    if new_list:
+                        return new_list
         elif value == amount:
-            rez_dict.update(variation_matrix)
-
-        return rez_dict
+            return combinations
 
 
 class UserRepository:
@@ -488,18 +487,17 @@ class ATMService:
 
         return bonus_size / 100 if not randrange(0, 9, 1) else 0
 
-    def __change_atm_balance(self, amount: [int, float], atm: ATM):
+    def __change_atm_balance(self, amount: [int, float], atm: ATM) -> list[Banknote]:
         if amount == 0 or amount > 0:
-            return
+            return []
 
-        banknotes = self.__banknote_service.get_amount_combinations(-amount, atm.id)
-        if not banknotes or len(banknotes) == 0:
-            raise ATMException("can't get banknotes")
-        for banknote in banknotes:
-            banknote.amount = -banknote.amount
-        self.__banknote_service.update_exist_banknotes(banknotes)
+        banknotes = self.__banknote_service.get_all_by_amount(-amount, atm.id)
+        self.__banknote_service.update_exist_banknotes(
+            [Banknote(i.denomination, -i.amount, i.atm_id) for i in banknotes], atm.id)
 
-    def __change_user_balance(self, user: User, amount: [int, float], atm: ATM) -> float:
+        return banknotes
+
+    def __change_user_balance(self, user: User, amount: [int, float], atm: ATM) -> [float, list[Banknote]]:
         user_balance = self.__user_balance_service.get(user.id)
 
         if amount < 0 and user_balance < -amount:
@@ -516,7 +514,7 @@ class ATMService:
         if amount == 0:
             return back_amount
 
-        self.__change_atm_balance(amount, atm)
+        banknotes = self.__change_atm_balance(amount, atm)
 
         amount += amount * self.__get_bonus_percent(user) if amount > 0 else 0
         user_balance += amount
@@ -524,7 +522,7 @@ class ATMService:
         self.__user_balance_service.save(user.id, user_balance)
         self.__user_transaction_service.save(Transaction(user.id, None, amount, user_balance))
 
-        return back_amount if amount > 0 else -amount
+        return back_amount if amount > 0 else banknotes
 
     def __get_user_transactions(self, user: User):
         return self.__user_transaction_service.get_all(user.id)
@@ -542,7 +540,11 @@ class ATMService:
         if command == 3 or command == 4:
             amount = ConsoleReader.get_amount()
             back_amount = self.__change_user_balance(user, (amount if command == 3 else -amount), atm)
-            return 'Done' if back_amount == 0 else f'Return {round(back_amount, 2)}'
+            if isinstance(back_amount, float):
+                return 'Done' if back_amount == 0 else f'Return {round(back_amount, 2)}'
+            if isinstance(back_amount, list):
+                return ', '.join(
+                    f"{i}" for i in back_amount) + f" Total: {sum(i.denomination * i.amount for i in back_amount)}"
 
         if command == 5:
             str_generator = ('Date {} Amount: {}'.format(item.dt, item.amount)
