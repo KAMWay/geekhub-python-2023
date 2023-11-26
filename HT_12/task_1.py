@@ -1,10 +1,10 @@
 # Банкомат 3.0
 # - реалізуйте видачу купюр за логікою видавання найменшої кількості купюр. Наприклад: 2560 --> 2х1000, 1х500, 3х20.
 # Будьте обережні з "жадібним алгоритмом"!
-from pathlib import Path
 import sqlite3
-from datetime import datetime
+from pathlib import Path
 from random import randrange
+from datetime import datetime
 
 
 class ATMException(Exception):
