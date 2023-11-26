@@ -1,7 +1,10 @@
 # Банкомат 3.0
 # - реалізуйте видачу купюр за логікою видавання найменшої кількості купюр. Наприклад: 2560 --> 2х1000, 1х500, 3х20.
 # Будьте обережні з "жадібним алгоритмом"!
+from pathlib import Path
 import sqlite3
+from datetime import datetime
+from random import randrange
 
 
 class ATMException(Exception):
@@ -15,7 +18,6 @@ class ATMValidateException(ATMException):
 class Connection:
     @staticmethod
     def get_connection():
-        from pathlib import Path
         return sqlite3.connect(Path('db', 'atm.db'))
 
     @staticmethod
@@ -54,10 +56,7 @@ class Banknote:
 
 
 class Transaction:
-    from datetime import datetime
-
     def __init__(self, user_id: int, dt: [datetime, None], amount: [float, int], balance: [float, int]):
-        from datetime import datetime
         dt = datetime.now() if not dt else dt
 
         self.user_id = user_id
@@ -106,16 +105,16 @@ class ConsoleReader:
         while True:
             print()
             print('----Available ATM commands----')
-            print('1. Show total user deposit')
-            print('2. Show total ATM deposit')
-            print('3. Top-up balance')
-            print('4. Deposit money')
+            print('1. User balance')
+            print('2. ATM balance')
+            print('3. Top-up user balance')
+            print('4. Withdrawing money')
             print('5. Transaction history')
             print('6. Exit')
 
             if is_admin:
-                print('7. Administrator: update banknotes')
-                print('8. Administrator: available banknotes')
+                print('7. Admin: top-up banknotes')
+                print('8. Admin: available banknotes')
 
             print('------------------------')
             try:
@@ -482,7 +481,6 @@ class ATMService:
         pass
 
     def __get_bonus_percent(self, user: User, bonus_size: int = 10) -> float:
-        from random import randrange
         if len(self.__user_transaction_service.get_all(user.id)) != 0:
             return 0
 
