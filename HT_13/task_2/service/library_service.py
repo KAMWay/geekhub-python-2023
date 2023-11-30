@@ -36,6 +36,10 @@ class LibraryService:
         book = ConsoleReader.get_book()
         return self.__book_service.save(book)
 
+    def __create_category(self) -> Category:
+        category = ConsoleReader.get_category()
+        return self.__category_service.save(category)
+
     def __return_book(self, person: Person):
         book_id = ConsoleReader.get_number('Enter book id: ')
         book = self.__book_service.get_by_id(book_id)
@@ -62,8 +66,7 @@ class LibraryService:
             return 'Exit'
 
         if command == 1:
-            str_generator = (self.__book_to_str(book) for book in self.__book_service.get_all())
-            return '\n'.join(str_generator)
+            return '\n'.join((self.__book_to_str(book) for book in self.__book_service.get_all()))
 
         if command == 2:
             book_atr = ConsoleReader.get_book_atr_for_search()
@@ -73,13 +76,11 @@ class LibraryService:
 
         if command == 3:
             categories = self.__book_category_service.get_categories_with_books()
-            str_generator = (self.__category_with_books_to_str(k, v) for k, v in categories.items())
-            return '\n'.join(str_generator)
+            return '\n'.join((self.__category_with_books_to_str(k, v) for k, v in categories.items()))
 
         if command == 4:
-            str_generator = (self.__book_to_str(book) for book in
-                             self.__person_book_service.get_person_with_books(person))
-            return '\n'.join(str_generator)
+            return '\n'.join(
+                (self.__book_to_str(book) for book in self.__person_book_service.get_person_with_books(person)))
 
         if command == 5:
             self.__return_book(person)
@@ -95,4 +96,11 @@ class LibraryService:
 
         if person.is_admin() and command == 9:
             self.__create_book()
+            return "Done"
+
+        if person.is_admin() and command == 10:
+            return '\n'.join((f"{category.id}:{category.info}" for category in self.__category_service.get_all()))
+
+        if person.is_admin() and command == 11:
+            self.__create_category()
             return "Done"

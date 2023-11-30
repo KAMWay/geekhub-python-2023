@@ -1,4 +1,4 @@
-from HT_13.task_2.model.model import Person, Book, CustomException
+from HT_13.task_2.model.model import Person, Book, CustomException, Category
 
 
 class ConsoleReader:
@@ -17,6 +17,13 @@ class ConsoleReader:
         author = input('Enter book author: ')
         title = input('Enter book title: ')
         return Book(None, author, title, "", 0, 0)
+
+    @staticmethod
+    def get_category() -> Category:
+        print()
+        print('------ Please ------')
+        info = input('Enter category info: ')
+        return Category(None, info)
 
     @staticmethod
     def get_book() -> Book:
@@ -56,9 +63,10 @@ class ConsoleReader:
             if is_admin:
                 print('8. Admin: add person')
                 print('9. Admin: add book')
-                # print('10. Admin: add category')
-                # print('11. Admin: set book amount')
-                # print('12. Admin: set book category')
+                print('10. Admin: view categories')
+                print('11. Admin: add category')
+                # print('12. Admin: set book amount')
+                # print('13. Admin: set book category')
 
             print('------------------------')
             try:

@@ -41,7 +41,7 @@ class Person(Entity):
         return self.__role
 
     @role.setter
-    def role(self, role:str):
+    def role(self, role: str):
         self.__role = role
 
     def is_admin(self):
@@ -118,6 +118,10 @@ class Category(Entity):
     @property
     def info(self) -> str:
         return self.__info
+
+    @info.setter
+    def info(self, info):
+        self.__info = info
 
     def __str__(self):
         return f"{self.id}:{self.__info}"
