@@ -1,4 +1,4 @@
-from HT_13.task_2.model.model import Person, Book, Entity
+from HT_13.task_2.model.model import Person, Book, CustomException
 
 
 class ConsoleReader:
@@ -19,14 +19,14 @@ class ConsoleReader:
         return Book(None, author, title, "", 0, 0)
 
     @staticmethod
-    def get_number(msg:str) -> int:
+    def get_number(msg: str) -> int:
         try:
             number = int(input(msg))
             if 1 <= number:
                 return number
             raise ValueError()
         except ValueError:
-            print('Incorrect input. Try again.')
+            raise CustomException('Incorrect input. Try again.')
 
     @staticmethod
     def get_command(is_admin: bool = False) -> int:
@@ -36,7 +36,7 @@ class ConsoleReader:
             print('----Available commands----')
             print('1. Books all')
             print('2. Find books')
-            print('3. Books categories')
+            print('3. Books by categories')
             print('4. Person books')
             print('5. Return book')
             print('6. Get book')

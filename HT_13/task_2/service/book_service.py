@@ -13,14 +13,19 @@ class BookService:
         return list(filter(lambda i: author in i.author and title in i.title, self.get_all()))
 
     def get_by_id(self, _id: int) -> [Book, None]:
+        book = self.__repository.get_by_id(_id)
+
+        if not book:
+            raise CustomException("book not found")
+
         return self.__repository.get_by_id(_id)
 
     def save(self, book: Book):
-        if book.number_available < 0:
-            raise CustomException('no available book')
-
         if book.number_available > book.number:
-            raise CustomException('no library book')
+            raise CustomException("available book can't be more then total number")
+
+        if book.number_available < 0:
+            raise CustomException("available book can't be negative")
 
         if book.is_new():
             self.__repository.insert(book)

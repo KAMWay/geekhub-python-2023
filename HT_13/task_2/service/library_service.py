@@ -35,20 +35,23 @@ class LibraryService:
     def __return_book(self, person: Person):
         book_id = ConsoleReader.get_number('Enter book id: ')
         book = self.__book_service.get_by_id(book_id)
+        self.__person_book_service.delete(person, book)
+
         book.number_available += 1
         self.__book_service.save(book)
-        self.__person_book_service.delete(person, book)
 
     def __get_book(self, person: Person):
         book_id = ConsoleReader.get_number('Enter book id: ')
         book = self.__book_service.get_by_id(book_id)
+
+        self.__person_book_service.save(person, book)
+
         book.number_available -= 1
         self.__book_service.save(book)
-        self.__person_book_service.save(person, book)
 
     @staticmethod
     def __book_to_str(book: Book) -> str:
-        return f"id:{book.id} Title: {book.title} Author: {book.author} Number {book.number} Available {book.number_available}"
+        return (f"id:{book.id} Title: {book.title} Author: {book.author} [{book.number}:{book.number_available}]")
 
     def __category_with_books_to_str(self, category: Category, books: list[Book]) -> str:
         return f"id:{category.id} {category.info}: \n     " + '\n     '.join(self.__book_to_str(i) for i in books)
@@ -86,5 +89,5 @@ class LibraryService:
             return "Done"
 
         if person.is_admin() and command == 8:
-            person = self.__create_person()
+            self.__create_person()
             return "Done"

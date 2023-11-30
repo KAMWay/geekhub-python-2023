@@ -3,18 +3,16 @@
 from HT_13.task_2.api.console_reader import ConsoleReader
 from HT_13.task_2.model.model import CustomException
 from HT_13.task_2.service.library_service import LibraryService
-from HT_13.task_2.service.person_service import PersonService
 
 
 def start():
     library_service = LibraryService()
-    # person = library_service.get_person()
-    person = PersonService().get_by_name("admin", "admin")
+    person = library_service.get_person()
+    # person = PersonService().get_by_name("admin", "admin")
 
     if not person:
         print('Person not found')
 
-    # command = ""
     while person:
         command = ConsoleReader.get_command(person.is_admin())
 
@@ -22,7 +20,7 @@ def start():
             rez = library_service.get_command_result(person, command)
             print('- - -  Result  - - - - -')
             print(rez)
-            print('- - - - - - - - - - - -')
+            print('- - - - -  - - - - - - -')
             if rez == 'Exit':
                 break
         except CustomException as e:
