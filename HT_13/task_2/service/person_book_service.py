@@ -17,7 +17,7 @@ class PersonBookService:
                     persons_dict[person] = [book]
         return persons_dict
 
-    def get_person_with_books(self, person:Person) -> list[Book]:
+    def get_books_by_person(self, person:Person) -> list[Book]:
         return self.__repository.get_by_person_id(person.id)
 
     def get_books_with_persons(self) -> dict[Book:list[Person]]:
@@ -32,12 +32,13 @@ class PersonBookService:
         return books_dict
 
     def save(self, person: Person, book: Book):
-        if any(i.id == book.id for i in self.get_person_with_books(person)):
+        if any(i.id == book.id for i in self.get_books_by_person(person)):
             raise CustomException("person have this book")
+
         self.__repository.insert(person.id, book.id)
 
     def delete(self, person: Person, book: Book):
-        if not any(i.id == book.id for i in self.get_person_with_books(person)):
+        if not any(i.id == book.id for i in self.get_books_by_person(person)):
             raise CustomException("person have not this book")
 
         self.__repository.delete(person.id, book.id)

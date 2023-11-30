@@ -20,10 +20,10 @@ class LibraryService:
         return self.__person_service.get_by_name(person.name, person.lastname)
 
     def __create_person(self) -> Person:
+        person = ConsoleReader.get_person()
+
         roles = self.__person_service.get_roles()
         roles_str = "\n".join(f"{i + 1}. {roles[i]}" for i in range(len(roles)))
-
-        person = ConsoleReader.get_person()
         number = ConsoleReader.get_number(roles_str + '\nEnter number: ')
 
         if number < 1 or number > len(roles):
@@ -39,6 +39,36 @@ class LibraryService:
     def __create_category(self) -> Category:
         category = ConsoleReader.get_category()
         return self.__category_service.save(category)
+
+    def __change_book_category(self, is_new: bool = True):
+
+        book_id = ConsoleReader.get_number("Enter book id: ")
+        book = self.__book_service.get_by_id(book_id)
+        if not book:
+            raise CustomException("can't find book")
+
+        if is_new:
+            all_categories = set(self.__category_service.get_all())
+            exist_categories = set(self.__book_category_service.get_categories_by_book(book))
+            categories = all_categories.difference(exist_categories)
+        else:
+            categories = self.__book_category_service.get_categories_by_book(book)
+
+        if len(categories) == 0:
+            raise CustomException("not available categories")
+
+        categories_str = "\n".join(f"id:{i.id} {i.info}" for i in categories)
+        number = ConsoleReader.get_number(categories_str + '\nEnter category id: ')
+
+        if not categories or not any(i.id == number for i in categories):
+            raise CustomException('Incorrect input category id')
+
+        category = next((i for i in categories if i.id == number))
+
+        if is_new:
+            self.__book_category_service.save(book, category)
+        else:
+            self.__book_category_service.delete(book, category)
 
     def __return_book(self, person: Person):
         book_id = ConsoleReader.get_number('Enter book id: ')
@@ -56,7 +86,7 @@ class LibraryService:
 
     @staticmethod
     def __book_to_str(book: Book) -> str:
-        return (f"id:{book.id} Title: {book.title} Author: {book.author} [{book.number}:{book.number_available}]")
+        return f"id:{book.id} Title: {book.title} Author: {book.author} [{book.number}:{book.number_available}]"
 
     def __category_with_books_to_str(self, category: Category, books: list[Book]) -> str:
         return f"id:{category.id} {category.info}: \n     " + '\n     '.join(self.__book_to_str(i) for i in books)
@@ -80,7 +110,7 @@ class LibraryService:
 
         if command == 4:
             return '\n'.join(
-                (self.__book_to_str(book) for book in self.__person_book_service.get_person_with_books(person)))
+                (self.__book_to_str(book) for book in self.__person_book_service.get_books_by_person(person)))
 
         if command == 5:
             self.__return_book(person)
@@ -103,4 +133,8 @@ class LibraryService:
 
         if person.is_admin() and command == 11:
             self.__create_category()
+            return "Done"
+
+        if person.is_admin() and (command == 12 or command == 13):
+            self.__change_book_category(command == 12)
             return "Done"

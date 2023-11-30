@@ -31,7 +31,7 @@ class BookCategoryRepository:
             except sqlite3.Error:
                 raise CustomException("can't get persons books from database")
 
-    def get_by_book_id(self, book_id: int) -> list[dict[Book:Category]]:
+    def get_by_book_id(self, book_id: int) -> list[Category]:
         with DBConnection() as con:
             try:
                 con.row_factory = sqlite3.Row
@@ -39,21 +39,15 @@ class BookCategoryRepository:
 
                 sql = '''
                         SELECT bc.book_id         as book_id,
-                               b.author           as book_author,
-                               b.title            as book_title,
-                               b.publisher_info   as book_publisher_info,
-                               b.number           as book_number,
-                               b.number_available as book_number_available,
                                bc.category_id     as category_id,
                                c.info             as category_info
                         FROM books_categories bc
-                                 JOIN books b on b.id = bc.book_id
                                  JOIN categories c on c.id = bc.category_id
-                        WHERE bc.book_id  = 1
+                        WHERE bc.book_id  = ?
                 '''
                 cur.execute(sql, (book_id,))
                 rows = cur.fetchall()
-                return [{self.__book_mapping(row): self.__category_mapping(row)} for row in rows]
+                return [self.__category_mapping(row) for row in rows]
             except sqlite3.Error:
                 raise CustomException("can't get person books from database")
 

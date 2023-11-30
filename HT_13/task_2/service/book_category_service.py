@@ -1,4 +1,4 @@
-from HT_13.task_2.model.model import Book, Category
+from HT_13.task_2.model.model import Book, Category, CustomException
 from HT_13.task_2.repository.book_category_repository import BookCategoryRepository
 
 
@@ -17,6 +17,9 @@ class BookCategoryService:
                     books_dict[book] = [category]
         return books_dict
 
+    def get_categories_by_book(self, book: Book) -> list[Category]:
+        return self.__repository.get_by_book_id(book.id)
+
     def get_categories_with_books(self) -> dict[Category:list[Book]]:
         categories_dict = {}
         for item_dict in self.__repository.get_all():
@@ -29,8 +32,14 @@ class BookCategoryService:
 
         return categories_dict
 
-    def save(self, book_id: int, category_id: int):
-        self.__repository.insert(book_id, category_id)
+    def save(self, book: Book, category: Category):
+        if any(i.id == category.id for i in self.get_categories_by_book(book)):
+            raise CustomException("book have this category")
 
-    def delete(self, book_id: int, category_id: int):
-        self.__repository.delete(book_id, category_id)
+        self.__repository.insert(book.id, category.id)
+
+    def delete(self, book: Book, category: Category):
+        if not any(i.id == category.id for i in self.get_categories_by_book(book)):
+            raise CustomException("book have not this category")
+
+        self.__repository.delete(book.id, category.id)

@@ -47,8 +47,8 @@ class ConsoleReader:
             raise CustomException('Incorrect input. Try again.')
 
     @staticmethod
-    def get_command(is_admin: bool = False) -> int:
-        count_commands = 12 if is_admin else 7
+    def get_command(is_admin: bool = False, min_commands: int = 7, max_commands: int = 14) -> int:
+        count_commands = max_commands if is_admin else min_commands
         while True:
             print()
             print('----Available commands----')
@@ -65,8 +65,9 @@ class ConsoleReader:
                 print('9. Admin: add book')
                 print('10. Admin: view categories')
                 print('11. Admin: add category')
-                # print('12. Admin: set book amount')
-                # print('13. Admin: set book category')
+                print('12. Admin: set book category')
+                print('13. Admin: delete book category')
+                # print('13. Admin: set book amount')
 
             print('------------------------')
             try:
