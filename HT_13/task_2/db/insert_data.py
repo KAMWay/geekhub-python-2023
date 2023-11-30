@@ -3,14 +3,9 @@ import sqlite3
 con = sqlite3.connect("library.db")
 cur = con.cursor()
 
-cur.execute('''INSERT INTO authors (full_name)
-               VALUES ('Tom Cruse'),('Albert Someone');
-            ''')
-con.commit()
-
-cur.execute('''INSERT INTO books (author_id, title, publisher_info, number, number_available)
-               VALUES (1,'Book name 1', 'Publisher info, 2012', 10, 8),
-                      (2,'Book name 2', 'Publisher info, 2020', 5, 4);
+cur.execute('''INSERT INTO books (author, title, publisher_info, number, number_available)
+               VALUES ('Tom Cruse','Book name 1', 'Publisher info, 2012', 10, 8),
+                      ('Albert Someone','Book name 2', 'Publisher info, 2020', 5, 4);
             ''')
 con.commit()
 
@@ -22,7 +17,7 @@ cur.execute('''INSERT INTO categories (info)
 con.commit()
 
 cur.execute('''INSERT INTO persons (name, lastname, role) 
-               VALUES ('Admin', 'Admin', 'ADMIN'),
+               VALUES ('admin', 'admin', 'ADMIN'),
                       ('Smit', 'Adams', 'STUDENT'),
                       ('Tom', 'Vagner', 'TEACHER'),
                       ('Bill', 'Owner', 'STUDENT');

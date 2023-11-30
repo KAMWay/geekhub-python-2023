@@ -3,7 +3,6 @@ from pathlib import Path
 
 
 class DBConnection:
-
     def __init__(self):
         self.__con = None
 
