@@ -19,10 +19,21 @@ class ConsoleReader:
         return Book(None, author, title, "", 0, 0)
 
     @staticmethod
-    def get_number(msg: str) -> int:
+    def get_book() -> Book:
+        print()
+        print('------ Please ------')
+        author = input('Enter book author: ')
+        title = input('Enter book title: ')
+        publisher_info = input('Enter publisher info: ')
+        number = ConsoleReader.get_number('Enter number: ', 0)
+        number_available = ConsoleReader.get_number('Enter available number: ', 0)
+        return Book(None, author, title, publisher_info, number, number_available)
+
+    @staticmethod
+    def get_number(msg: str, min_value: int = 1) -> int:
         try:
             number = int(input(msg))
-            if 1 <= number:
+            if min_value <= number:
                 return number
             raise ValueError()
         except ValueError:
@@ -44,7 +55,7 @@ class ConsoleReader:
 
             if is_admin:
                 print('8. Admin: add person')
-                # print('9. Admin: add book')
+                print('9. Admin: add book')
                 # print('10. Admin: add category')
                 # print('11. Admin: set book amount')
                 # print('12. Admin: set book category')

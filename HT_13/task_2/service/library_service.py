@@ -20,8 +20,8 @@ class LibraryService:
         return self.__person_service.get_by_name(person.name, person.lastname)
 
     def __create_person(self) -> Person:
-        roles = ['ADMIN', 'STUDENT', 'TEACHER']
-        roles_str = "\n".join(f"{i}. {roles[i]}" for i in range(len(roles)))
+        roles = self.__person_service.get_roles()
+        roles_str = "\n".join(f"{i + 1}. {roles[i]}" for i in range(len(roles)))
 
         person = ConsoleReader.get_person()
         number = ConsoleReader.get_number(roles_str + '\nEnter number: ')
@@ -32,22 +32,23 @@ class LibraryService:
         person.role = roles[number - 1]
         return self.__person_service.save(person)
 
+    def __create_book(self) -> Book:
+        book = ConsoleReader.get_book()
+        return self.__book_service.save(book)
+
     def __return_book(self, person: Person):
         book_id = ConsoleReader.get_number('Enter book id: ')
         book = self.__book_service.get_by_id(book_id)
-        self.__person_book_service.delete(person, book)
-
         book.number_available += 1
         self.__book_service.save(book)
+        self.__person_book_service.delete(person, book)
 
     def __get_book(self, person: Person):
         book_id = ConsoleReader.get_number('Enter book id: ')
         book = self.__book_service.get_by_id(book_id)
-
-        self.__person_book_service.save(person, book)
-
         book.number_available -= 1
         self.__book_service.save(book)
+        self.__person_book_service.save(person, book)
 
     @staticmethod
     def __book_to_str(book: Book) -> str:
@@ -90,4 +91,8 @@ class LibraryService:
 
         if person.is_admin() and command == 8:
             self.__create_person()
+            return "Done"
+
+        if person.is_admin() and command == 9:
+            self.__create_book()
             return "Done"

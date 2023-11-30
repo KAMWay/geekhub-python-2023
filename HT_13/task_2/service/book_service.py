@@ -21,13 +21,24 @@ class BookService:
         return self.__repository.get_by_id(_id)
 
     def save(self, book: Book):
-        if book.number_available > book.number:
-            raise CustomException("available book can't be more then total number")
-
-        if book.number_available < 0:
-            raise CustomException("available book can't be negative")
-
+        self.__validate(book)
         if book.is_new():
             self.__repository.insert(book)
         else:
             self.__repository.update(book)
+
+    def __validate(self, book: Book):
+        if not book.author or len(book.author) == 0:
+            raise CustomException("book author can't be empty")
+
+        if not book.title or len(book.title) == 0:
+            raise CustomException("book title can't be empty")
+
+        if not book.publisher_info or len(book.publisher_info) == 0:
+            raise CustomException("book publisher info can't be empty")
+
+        if book.number_available > book.number:
+            raise CustomException("available book number can't be more then total number")
+
+        if book.number_available < 0:
+            raise CustomException("available book number can't be negative")
