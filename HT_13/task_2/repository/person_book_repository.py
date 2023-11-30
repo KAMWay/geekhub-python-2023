@@ -3,6 +3,7 @@ import sqlite3
 from HT_13.task_2.connect import DBConnection
 from HT_13.task_2.model.model import Person, CustomException, Book
 
+
 class PersonBookRepository:
     def get_all(self) -> list[dict[Person:Book]]:
         with DBConnection() as con:
@@ -83,5 +84,3 @@ class PersonBookRepository:
     def __book_mapping(row: dict) -> Book:
         return Book(row['book_id'], row['book_author'], row['book_title'],
                     row['book_publisher_info'], row['book_number'], row['book_number_available'])
-
-

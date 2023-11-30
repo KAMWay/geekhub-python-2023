@@ -17,7 +17,7 @@ class PersonBookService:
                     persons_dict[person] = [book]
         return persons_dict
 
-    def get_books_by_person(self, person:Person) -> list[Book]:
+    def get_books_by_person(self, person: Person) -> list[Book]:
         return self.__repository.get_by_person_id(person.id)
 
     def get_books_with_persons(self) -> dict[Book:list[Person]]:

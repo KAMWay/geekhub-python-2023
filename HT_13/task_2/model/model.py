@@ -1,6 +1,3 @@
-# 2. Створіть за допомогою класів та продемонструйте свою реалізацію шкільної бібліотеки (включіть фантазію).
-# Наприклад вона може містити класи Person, Teacher, Student, Book, Shelf, Author, Category і.т.д.
-
 class CustomException(Exception):
     pass
 
