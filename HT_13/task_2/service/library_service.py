@@ -70,6 +70,17 @@ class LibraryService:
         else:
             self.__book_category_service.delete(book, category)
 
+    def __update_book_amount(self):
+        book_id = ConsoleReader.get_number("Enter book id: ")
+        book = self.__book_service.get_by_id(book_id)
+
+        if not book:
+            raise CustomException("can't find book")
+
+        book.number = ConsoleReader.get_number("Enter book number: ", 0)
+        book.number_available = ConsoleReader.get_number("Enter book number available: ", 0)
+        self.__book_service.save(book)
+
     def __return_book(self, person: Person):
         book_id = ConsoleReader.get_number('Enter book id: ')
         book = self.__book_service.get_by_id(book_id)
@@ -137,4 +148,8 @@ class LibraryService:
 
         if person.is_admin() and (command == 12 or command == 13):
             self.__change_book_category(command == 12)
+            return "Done"
+
+        if person.is_admin() and command == 14:
+            self.__update_book_amount()
             return "Done"

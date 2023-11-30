@@ -52,8 +52,10 @@ class Person(Entity):
             (self.id, self.__name, self.__lastname, self.__role))
 
     def __eq__(self, other):
-        if self is other: return True
-        if other is None or type(self) != type(other): return False;
+        if self is other:
+            return True
+        if other is None or type(self) is not type(other):
+            return False
 
         return (self.id == other.id and self.__name == other.name and self.__lastname == other.lastname
                 and self.__role == other.role)
@@ -86,6 +88,10 @@ class Book(Entity):
     def number(self) -> int:
         return self.__number
 
+    @number.setter
+    def number(self, number: int):
+        self.__number = number
+
     @property
     def number_available(self) -> int:
         return self.__number_available
@@ -95,8 +101,10 @@ class Book(Entity):
         self.__number_available = number
 
     def __eq__(self, other):
-        if self is other: return True
-        if other is None or type(self) != type(other): return False;
+        if self is other:
+            return True
+        if other is None or type(self) is not type(other):
+            return False
 
         return (self.id == other.id and self.__author == other.author and self.__title == other.title
                 and self.__publisher_info == other.publisher_info and self.__number == other.number
@@ -131,8 +139,10 @@ class Category(Entity):
             (self.id, self.__info))
 
     def __eq__(self, other):
-        if self is other: return True
-        if other is None or type(self) != type(other): return False;
+        if self is other:
+            return True
+        if other is None or type(self) is not type(other):
+            return False
 
         return self.id == other.id and self.__info == other.info
 

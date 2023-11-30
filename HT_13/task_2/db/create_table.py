@@ -11,7 +11,6 @@ cur.execute('''CREATE TABLE IF NOT EXISTS persons(
             UNIQUE (name, lastname)
             );''')
 
-
 cur.execute('''CREATE TABLE IF NOT EXISTS books(
             id                  INTEGER     PRIMARY KEY AUTOINCREMENT,
             author              TEXT        NOT NULL,
@@ -43,27 +42,3 @@ cur.execute('''CREATE TABLE IF NOT EXISTS persons_books(
             );''')
 
 con.close()
-
-
-
-# cur.execute('''CREATE TABLE IF NOT EXISTS groups(
-#             id      INTEGER     PRIMARY KEY AUTOINCREMENT,
-#             info    TEXT        NOT NULL UNIQUE
-#             );''')
-
-
-# cur.execute('''CREATE TABLE IF NOT EXISTS student_group(
-#             person_id   INTEGER     NOT NULL UNIQUE,
-#             group_id    INTEGER     NOT NULL,
-#             FOREIGN KEY (person_id)  REFERENCES persons (id) ON DELETE CASCADE,
-#             FOREIGN KEY (group_id)   REFERENCES groups (id) ON DELETE CASCADE
-#             );''')
-#
-# cur.execute('''CREATE TABLE IF NOT EXISTS teacher_groups(
-#             person_id   INTEGER     NOT NULL,
-#             group_id    INTEGER     NOT NULL,
-#             UNIQUE (person_id, group_id),
-#             FOREIGN KEY (person_id)  REFERENCES persons (id) ON DELETE CASCADE,
-#             FOREIGN KEY (group_id)   REFERENCES groups (id) ON DELETE CASCADE
-#             );''')
-

@@ -67,7 +67,7 @@ class ConsoleReader:
                 print('11. Admin: add category')
                 print('12. Admin: set book category')
                 print('13. Admin: delete book category')
-                # print('13. Admin: set book amount')
+                print('14. Admin: set book amount')
 
             print('------------------------')
             try:
