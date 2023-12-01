@@ -70,25 +70,3 @@ if __name__ == '__main__':
     print(f"side:{square.side} color:{oval.color}")
     square.side, oval.color = 25, 'red'
     print(f"side:{square.side} color:{square.color}")
-
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-# 2. Створіть за допомогою класів та продемонструйте свою реалізацію шкільної бібліотеки (включіть фантазію).
-# Наприклад вона може містити класи Person, Teacher, Student, Book, Shelf, Author, Category і.т.д.
-#
-# 3. Створіть клас в якому буде атребут який буде рахувати кількість створених екземплярів класів.
-#
-# 4. Create 'list'-like object, but index starts from 1 and index of 0 raises error. Тобто це повинен бути клас,
-# який буде поводити себе так, як list (маючи основні методи), але індексація повинна починатись із 1
