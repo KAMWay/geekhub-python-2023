@@ -11,32 +11,37 @@ class _XRateApi:
     def _update_rate(self, xrate: XRate):
         xrate.updated = datetime.now()
 
-    def _get_request(self, *, url: str, data=None, headers=None):
+    def _get_request(self, *, url: str, params=None, data=None, headers=None):
         try:
-            response = requests.get(url=url, data=data, headers=headers, timeout=HTTP_TIMEOUT)
+            response = requests.get(url=url, data=data, params=params, headers=headers, timeout=HTTP_TIMEOUT)
             return response
-        except Exception as ex:
-            raise ATMException("can't do http request")
+        except Exception:
+            raise ATMException("invalid can't do http request")
 
 
 class PrivatApi(_XRateApi):
-    def _get_response_json(self) -> dict:
+    def __get_response_json(self) -> list[dict]:
         response = self._get_request(url="https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5")
         # dt = datetime.strptime(response.headers['date'], '%a, %d %b %Y %H:%M:%S %Z')
         return response.json()
 
-    def _get_rate(self, response_json: list[dict], from_currency: str) -> XRate:
+    def _get_rate(self, from_currency: str) -> XRate:
         rate_aliases = {"USD", "EUR"}
 
         if from_currency.upper() not in rate_aliases:
-            raise ValueError(f"Invalid from_currency: {from_currency}")
+            raise ATMException(f"invalid from currency: {from_currency}")
 
-        return next(
-            (self.__map_xrate(json_data) for json_data in response_json if json_data['ccy'] == from_currency),
-            None)
+        try:
+            return next((self.__map_xrate(json_data) for json_data in self.__get_response_json()
+                         if json_data['ccy'] == from_currency), None)
+        except (KeyError, ValueError):
+            raise ATMException("invalid json rate data")
 
-    def _get_rates(self, response_json: list[dict]) -> list[XRate]:
-        return [self.__map_xrate(json_data) for json_data in response_json]
+    def _get_rates(self) -> list[XRate]:
+        try:
+            return [self.__map_xrate(json_data) for json_data in self.__get_response_json()]
+        except (KeyError, ValueError):
+            raise ATMException("invalid json rates data")
 
     @staticmethod
     def __map_xrate(json_data: dict) -> XRate:
@@ -45,10 +50,3 @@ class PrivatApi(_XRateApi):
         buy_rate = float(json_data['buy'])
         sale_rate = float(json_data['sale'])
         return XRate(base_currency, to_currency, buy_rate, sale_rate)
-
-
-if __name__ == '__main__':
-    pb = PrivatApi()
-    data = pb._get_response_json()
-    print(pb._get_rate(data, "USD"))
-    print(pb._get_rates(data))

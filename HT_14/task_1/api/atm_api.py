@@ -1,11 +1,14 @@
 from random import randrange
 
-from HT_14.task_1.api.console_api import ConsoleReader
+from HT_14.task_1.api.console_api import ConsoleReaderApi
+from HT_14.task_1.api.xrate_api import PrivatApi
 from HT_14.task_1.model import User, ATMException, Banknote, ATMValidateException, ATM, Transaction
 from HT_14.task_1.service import UserService, BanknoteService, UserBalanceService, UserTransactionService
 
+
 class ATMApi:
     def __init__(self):
+        self.__xrate_api = PrivatApi()
         self.__user_service = UserService()
         self.__banknote_service = BanknoteService()
         self.__user_balance_service = UserBalanceService()
@@ -15,7 +18,7 @@ class ATMApi:
         count = 3
         user = None
         while not user or user.id is None:
-            user = ConsoleReader.get_user()
+            user = ConsoleReaderApi.get_user()
             try:
                 exist_user = self.__user_service.get(user.username, user.password)
                 if exist_user:
@@ -88,8 +91,8 @@ class ATMApi:
     def __get_user_transactions(self, user: User):
         return self.__user_transaction_service.get_all(user.id)
 
-    def get_command_result(self, user: User, atm: ATM = ATM(1)) -> str:
-        command = ConsoleReader.get_command(user.is_admin())
+    def get_cmd_result_str(self, user: User, atm: ATM = ATM(1)) -> str:
+        command = ConsoleReaderApi.get_command(user.is_admin())
         if command == 0:
             return 'Exit'
 
@@ -100,7 +103,7 @@ class ATMApi:
             return f'Total ATM deposit: {self.__get_atm_balance(atm)}'
 
         if command == 3 or command == 4:
-            amount = ConsoleReader.get_amount()
+            amount = ConsoleReaderApi.get_amount()
             back_amount = self.__change_user_balance(user, (amount if command == 3 else -amount), atm)
             if isinstance(back_amount, float):
                 return 'Done' if back_amount == 0 else f'Return {round(back_amount, 2)}'
@@ -113,8 +116,13 @@ class ATMApi:
                              for item in self.__get_user_transactions(user))
             return '\n'.join(str_generator)
 
+        if command == 6:
+            rates = self.__xrate_api._get_rates()
+            str_generator = (f"{rate.to_currency} {rate.buy_rate}/{rate.sale_rate}" for rate in rates)
+            return '\n'.join(str_generator)
+
         if user.is_admin() and command == 7:
-            banknote = ConsoleReader.get_banknote_amount(self.get_available_denomination())
+            banknote = ConsoleReaderApi.get_banknote_amount(self.get_available_denomination())
             banknote.atm_id = atm.id
             self.__save_banknote(banknote)
             return 'Done'

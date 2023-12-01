@@ -1,7 +1,7 @@
 from HT_14.task_1.model import User, ATMException, Banknote
 
 
-class ConsoleReader:
+class ConsoleReaderApi:
     @staticmethod
     def get_user() -> User:
         print()
@@ -46,7 +46,7 @@ class ConsoleReader:
             print('3. Top-up user balance')
             print('4. Withdrawing money')
             print('5. Transaction history')
-            print('5. Currency')
+            print('6. Exchange rate')
             print('0. Exit')
 
             if is_admin:
@@ -56,6 +56,7 @@ class ConsoleReader:
             print('------------------------')
             try:
                 number = int(input(f"Enter command number [1..{count_commands}]:"))
+                print('- - - - - - - - - - - -')
                 if 0 <= number <= count_commands:
                     return number
                 raise ValueError()

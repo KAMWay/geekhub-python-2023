@@ -14,8 +14,7 @@ def start():
 
     while user:
         try:
-            print('- - - - - - - - - - - -')
-            rez = atm_service.get_command_result(user)
+            rez = atm_service.get_cmd_result_str(user)
             print(rez)
             print('- - - - - - - - - - - -')
             if rez == 'Exit':
