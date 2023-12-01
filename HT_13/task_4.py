@@ -2,43 +2,28 @@
 # який буде поводити себе так, як list (маючи основні методи), але індексація повинна починатись із 1
 
 class CustomList(list):
-    class _CustomIndex:
-        def __getitem__(self, index):
-            if isinstance(index, slice):
-                new_key = slice(self.__get_index(index.start) if index.start else index.start,
-                                self.__get_index(index.stop) if index.stop else index.stop,
-                                index.step)
-                return new_key
-
-            return self.__get_index(index)
-
-        def __get_index(self, index: int):
-            if index == 0:
-                raise IndexError("Index can't be 0")
-
-            return index - 1 if index > 0 else index
-
     def __init__(self):
         super().__init__()
-        self._index = CustomList._CustomIndex()
 
     def __getitem__(self, key):
-        return super().__getitem__(self._index[key])
+        if isinstance(key, slice):
+            new_key = slice(self.__get_index(key.start), self.__get_index(key.stop), key.step)
+            return super().__getitem__(new_key)
+        return super().__getitem__(self.__get_index(key))
 
-    def __setitem__(self, key, value):
-        return super().__setitem__(self._index[key], value)
-
-    def __delitem__(self, key):
-        return super().__delitem__(self._index[key])
+    @staticmethod
+    def __get_index(index: int):
+        if index is None:
+            return index
+        if index == 0:
+            raise IndexError("Index can't be 0")
+        return index - 1 if index > 0 else index
 
     def insert(self, index: int, val: any):
-        super().insert(self._index[index], val)
-
-    def index(self, value, start=..., stop=...):
-        return super().index(value) + 1
+        super().insert(self.__get_index(index), val)
 
     def pop(self, index=None):
-        return super().pop(self._index[index]) if index else super().pop()
+        return super().pop(self.__get_index(index)) if index else super().pop()
 
 
 if __name__ == '__main__':
@@ -49,6 +34,7 @@ if __name__ == '__main__':
     cl.append(4)
     cl.append(9)
 
+    print(cl)
     print(cl.index(1))
     cl.insert(1, 0)
     print(cl)
@@ -58,6 +44,8 @@ if __name__ == '__main__':
 
     print(cl[1])
     print(cl[1:])
+    print(cl[1:10])
+
     print(cl[1:3])
     print(cl[::-1])
 
