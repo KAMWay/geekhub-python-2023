@@ -73,9 +73,10 @@ class _XRateApi:
     def _get_request(self, *, url: str, params=None):
         try:
             response = requests.get(url=url, params=params, timeout=HTTP_TIMEOUT)
+            response.raise_for_status()
             return response
         except Exception:
-            raise CustomException("invalid can't do http request")
+            raise CustomException("invalid http request")
 
 
 class PrivatApi(_XRateApi):

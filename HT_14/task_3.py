@@ -62,7 +62,13 @@ def start():
     url = URL
     quotes = []
     while url:
-        response = requests.get(url)
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+        except IOError:
+            print("invalid http request")
+            continue
+
         soup = BeautifulSoup(response.text, 'lxml')
         [quotes.append(map_quote(quote_soup)) for quote_soup in soup.select("div.quote")]
 

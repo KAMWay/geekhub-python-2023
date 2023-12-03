@@ -14,9 +14,10 @@ class _XRateApi:
     def _get_request(self, *, url: str, params=None, data=None, headers=None):
         try:
             response = requests.get(url=url, data=data, params=params, headers=headers, timeout=HTTP_TIMEOUT)
+            response.raise_for_status()
             return response
         except Exception:
-            raise ATMException("invalid can't do http request")
+            raise ATMException("invalid http request")
 
 
 class PrivatApi(_XRateApi):
