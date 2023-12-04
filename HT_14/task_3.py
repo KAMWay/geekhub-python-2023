@@ -68,6 +68,8 @@ def start():
         except IOError:
             print("invalid http request")
             continue
+        finally:
+            print(f"Get {url}")
 
         soup = BeautifulSoup(response.text, 'lxml')
         [quotes.append(map_quote(quote_soup)) for quote_soup in soup.select("div.quote")]

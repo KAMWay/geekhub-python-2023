@@ -5,7 +5,6 @@
 #     - не забудьте перевірку на валідність введених даних
 import datetime
 from datetime import date
-from typing import Any, Generator
 
 import requests
 
@@ -92,22 +91,19 @@ class PrivatApi(_XRateApi):
             raise CustomException(f"invalid dates")
 
         for dt in dates:
-            it = self._get_rates(dt)
+            try:
+                yield next(i for i in self._get_rates(dt) if i.to_currency == currency_name)
+            except (KeyError, TypeError):
+                raise CustomException("invalid json data")
+            except StopIteration:
+                raise CustomException(f"invalid json parse currency: {currency_name}")
 
-            while True:
-                try:
-                    xrate = next(it)
-                    if xrate.to_currency == currency_name:
-                        yield xrate
-                        break
-                except (KeyError, TypeError):
-                    raise CustomException("invalid json data")
-
-    def _get_rates(self, dt: date) -> Generator[XRate, Any, None]:
+    def _get_rates(self, dt: date) -> list[XRate]:
         if not date:
             raise CustomException(f"invalid date")
+
         exchange_rates = self.__get_response_json(params={'date': str(dt.strftime("%d.%m.%Y"))})["exchangeRate"]
-        return (self.__map_xrate(dt, json_data) for json_data in exchange_rates)
+        return [self.__map_xrate(dt, json_data) for json_data in exchange_rates]
 
     @staticmethod
     def __map_xrate(exchange_date: date, json_data: dict) -> XRate:
@@ -134,10 +130,16 @@ def get_dates() -> [list[date], None]:
         start_date = date.fromisoformat(input("start date: "))
         end_date = input("end date: ")
         end_date = start_date if len(end_date) == 0 else date.fromisoformat(end_date)
+
         if start_date > end_date:
             raise CustomException('the start date is greater than the end date ')
+
+        today = date.today()
+        if start_date > today or end_date > today:
+            raise CustomException('the date is greater than today ')
+
     except ValueError:
-        print('Invalid input')
+        print('Invalid input date')
         return
     except CustomException as e:
         print(f"Exception: {e}")
@@ -155,7 +157,7 @@ def get_currency() -> [str, None]:
         if currency not in PrivatApi.rate_aliases():
             raise ValueError
     except ValueError:
-        print('Invalid input')
+        print('Invalid input currency')
         return
 
     return currency
@@ -171,7 +173,7 @@ def start():
         return
 
     pb = PrivatApi()
-    print(f"{currency_name}:")
+    print(f"Currency {currency_name}:")
     try:
         [print(f"{i.exchange_date}: {i.purchase_rate} / {i.sale_rate}") for i in
          pb.get_currency_rates(currency_name, dates)]
