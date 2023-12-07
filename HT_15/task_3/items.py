@@ -13,8 +13,3 @@ class DetailScrapyItem(scrapy.Item):
 
     def dict(self):
         return self.__dict__
-
-# class Task3Item(scrapy.Item):
-#     # define the fields for your item here like:
-#     # name = scrapy.Field()
-#     pass

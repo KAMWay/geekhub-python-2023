@@ -14,7 +14,7 @@ NEWSPIDER_MODULE = "task_3.spiders"
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = "task_3 (+http://www.yourdomain.com)"
+#USER_AGENT = "ht_15 (+http://www.yourdomain.com)"
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
 
 # Obey robots.txt rules
@@ -46,13 +46,13 @@ DOWNLOAD_DELAY = 3
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
-#    "task_3.middlewares.Task3SpiderMiddleware": 543,
+#    "ht_15.middlewares.Task3SpiderMiddleware": 543,
 #}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #DOWNLOADER_MIDDLEWARES = {
-#    "task_3.middlewares.Task3DownloaderMiddleware": 543,
+#    "ht_15.middlewares.Task3DownloaderMiddleware": 543,
 #}
 
 # Enable or disable extensions
@@ -64,7 +64,7 @@ DOWNLOAD_DELAY = 3
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 #ITEM_PIPELINES = {
-#    "task_3.pipelines.Task3Pipeline": 300,
+#    "ht_15.pipelines.Task3Pipeline": 300,
 #}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
