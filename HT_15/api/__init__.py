@@ -1,6 +1,8 @@
 import csv
 import logging
 import os
+from random import randrange
+from time import sleep
 
 import requests
 
@@ -32,13 +34,11 @@ class _Api:
         if not os.path.exists(dirname):
             os.makedirs(dirname)
 
-    def _send_request(self, *, url: str, method: str = 'get', headers: dict = None, data=None) -> requests.Response:
+    def _send_request(self, *, url: str, method: str = 'get', sleep_time: int, headers: dict = None, params=None) -> requests.Response:
         try:
-            if headers is None:
-                headers = {}
-
             headers.update({'User-Agent': USER_AGENT})
-            response = self.__send(url=url, method=method, headers=headers, data=data)
+            sleep(randrange(sleep_time, sleep_time + 5, 1))
+            response = self.__send(url=url, method=method, headers=headers, params=params)
             response.raise_for_status()
             return response
         except IOError:
@@ -47,5 +47,5 @@ class _Api:
             print(f'{method} {url}')
             logging.info(f'{method} {url}')
 
-    def __send(self, *, url: str, method: str = 'get', headers=None, data=None) -> requests.Response:
-        return requests.request(method=method, url=url, headers=headers, data=data, timeout=HTTP_TIMEOUT)
+    def __send(self, *, url: str, method: str = 'get', headers=None, params=None) -> requests.Response:
+        return requests.request(method=method, url=url, headers=headers, params=params, timeout=HTTP_TIMEOUT)

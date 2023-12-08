@@ -12,142 +12,222 @@
 # наприклад, переходите на наступну сторінку.
 # Підказка 2 - не забувайте використовувати хедери
 
-import csv
-import requests
 
-from bs4 import BeautifulSoup
-from random import randrange
-from time import sleep
+import json
+from dataclasses import dataclass
+from urllib.parse import urljoin
 
-from requests import Request, Response, Session
-
-BASE_URL = "https://www.sears.com/fitness-sports-fitness-exercise-strength-weight-training-home-gyms-stations/b-1340931236"
-USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
-
-class Product:
-    def __init__(self, img_url: str, price: float, final_price: float, info: str, buy_url: str,
-                 seller_info: str, is_flash_sale: bool = False):
-        self.img_url = img_url
-        self.price = price
-        self.final_price = final_price
-        self.info = info
-        self.buy_url = buy_url
-        self.seller_info = seller_info
-        self.is_flash_sale = is_flash_sale
+from HT_15.api import _Api
 
 
-def map_product(response_text: str) -> Product:
-    soup = BeautifulSoup(response_text, 'lxml')
-    return Product(
-        img_url=soup.select_one("a").get("href"),
-        price=float(soup.select_one("del").select_one("span.money").get_text()),
-        final_price=float(soup.select_one("span.final-price-display").get_text()),
-        info=soup.select_one("div.custom-div-title").get_text(),
-        buy_url=soup.select_one("div.product-detail sale-new-block").select_one("a").get("href"),
-        seller_info=soup.select_one("div.seller-info ").get_text(),
-        is_flash_sale=True if soup.select_one("div.best-promo").get_text() else False
-    )
+@dataclass
+class SearsItem:
+    brand_name: str
+    name: str
+    partNum: str
+    source: str
+
+    additional_attributes_dict: dict
+
+    swatchesInd: bool
+    offer_id: str
+    upc: str
+    value_consumer_rating: str
+    text_consumer_rating: str
+
+    lowest_price: float
+    lowest_price_2: float
+    final_price: float
+    regular_price: float
+    price_dict: dict
+
+    show_cashback_badge: bool
+    cashback_badge_category: str
+    category: str
 
 
-def map_products(response: requests.Response):
-    soup = BeautifulSoup(response.text, 'lxml')
-    for i in soup.select('div.product-box'):
-        yield map_product(i)
+class SearsApi(_Api):
+    BASE_URL = 'https://www.sears.com'
+    BASE_CATEGORY_URL = 'https://www.sears.com/content/configs/header/header.json'
+    BASE_ITEMS_URL = 'https://www.sears.com/api/sal/v3/products/search'
 
+    headers = {
+        'authority': 'www.sears.com',
+        'accept': 'application/json, text/plain, */*',
+        'accept-language': 'uk-UA,uk;q=0.9,en-US;q=0.8,en;q=0.7,ru;q=0.6,zh-TW;q=0.5,zh-CN;q=0.4,zh;q=0.3',
+        'cache-control': 'no-cache',
+        'pragma': 'no-cache',
+        'referer': 'https://www.sears.com/',
+        'sec-ch-ua': '"Google Chrome";v="119", "Chromium";v="119", "Not?A_Brand";v="24"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-origin',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
 
-def write_csv(data: list[dict], path: str = 'quote.csv', delimiter: str = '|'):
-    if not data or not data[0]:
-        return
+        'authorization': 'SEARS',
+        'content-type': 'application/json',
+    }
 
-    field_names = [str(i) for i in data[0].keys()]
-    with open(path, "w", newline='', encoding='UTF-8') as f:
-        writer = csv.DictWriter(f, delimiter=delimiter, fieldnames=field_names)
-        writer.writeheader()
-        [writer.writerow(i) for i in data]
+    def __category_params(self, cat_group_id: int, start_index: int, end_index: int) -> dict:
+        return {
+            "startIndex": start_index,
+            "endIndex": end_index,
+            "searchType": "category",
+            "catalogId": 12605,
+            "store": "Sears",
+            "storeId": 10153,
+            "zipCode": 10101,
+            "bratRedirectInd": "true",
+            "catPredictionInd": "true",
+            "disableBundleInd": "true",
+            "filterValueLimit": 500,
+            "includeFiltersInd": "true",
+            "shipOrDelivery": "true",
+            "solrxcatRedirection": "true",
+            "sortBy": "ORIGINAL_SORT_ORDER",
+            "whiteListCacheLoad": "false",
+            "eagerCacheLoad": "true",
+            "slimResponseInd": "true",
+            "catGroupId": cat_group_id
+            # 'seoURLPath': "food-grocery-snacks-nuts-seeds-trail-mixes/1038536"
+        }
 
+    def get_items(self, category_id: int) -> list[SearsItem]:
+        for i in self.__get_items_json(category_id):
+            print(f'{i.name} | {i.final_price} : {i.regular_price}')
 
-def get_response(url, *, method: str = 'get'):
-    try:
-        yield Request(
-            url=url,
-            method=method,
-            callback=ddd,
+        return []
+
+    def __get_items_json(self, category_id: int) -> list[SearsItem]:
+        start_index, end_index = 1, 48
+        items_list = []
+        while True:
+            print(f"{start_index}-{end_index}")
+            params = self.__category_params(category_id, start_index, end_index)
+            response = self._send_request(url=self.BASE_ITEMS_URL, method='get', headers=self.headers, params=params,
+                                          sleep_time=20)
+            if not response:
+                break
+
+            items = [self.__parse_sears_item(item) for item in json.loads(response.text)['items']]
+            items_list += items
+            for i in items:
+                print(f'{i.name} | {i.final_price} : {i.regular_price}')
+
+            # for item in json.loads(response.text)['items']:
+            #     yield self.__parse_sears_item(item)
+
+            # if response:
+            #     yield self.fff(json.loads(response.text)['items'])
+            #     # yield json.loads(response.text)['items']
+            # else:
+            #     break
+
+            start_index += 48
+            end_index += 48
+        return items_list
+
+    # def fff(self, items: list):
+    #     for item in items:
+    #         yield self.__parse_sears_item(item)
+
+    def __parse_sears_item(self, item_dict: dict) -> SearsItem:
+        return SearsItem(
+            brand_name=item_dict.get("brandName"),
+            name=item_dict.get("name"),
+            partNum=item_dict.get("partNum"),
+            source=item_dict.get("source"),
+
+            additional_attributes_dict=item_dict.get("additionalAttributes"),
+            swatchesInd=self.__get_bool_value(item_dict.get("swatchesInd")),
+            offer_id=item_dict.get("offerId"),
+            upc=item_dict.get("upc"),
+            value_consumer_rating=item_dict.get("valueConsumerRating"),
+            text_consumer_rating=self.__get_none_value(item_dict.get("textConsumerRating")),
+
+            lowest_price=self.__get_float_value(item_dict.get("lowest_price")),
+            lowest_price_2=self.__get_float_value(item_dict.get("lowestPrice")),
+            final_price=self.__get_float_value(item_dict.get("price").get("finalPrice")),
+            regular_price=self.__get_float_value(item_dict.get("price").get("regularPrice")),
+            price_dict=item_dict.get("price"),
+
+            show_cashback_badge=item_dict.get("showCashbackBadge"),
+            cashback_badge_category=item_dict.get("cashbackBadgeCategory"),
+            category=item_dict.get("category")
         )
 
-        # response = requests.request(method=method, url=url)
-        # sleep(randrange(1, 3, 1))
-        # response.raise_for_status()
-        # return response
-    finally:
-        print(f"{method} {url}")
+    def __get_categories_json(self):
+        try:
+            response = self._send_request(url=self.BASE_CATEGORY_URL, method='get', headers=self.headers, sleep_time=10)
+            jsons_list = response.json()
+            return next(i for i in jsons_list if i['itemId'] == 'shop')
+        except Exception:
+            return
 
+    def get_category_url_by_json(self, category_id: str, item_dict: dict = None) -> [str, None]:
+        if not item_dict:
+            item_dict = self.__get_categories_json()
+            if not item_dict:
+                return
 
-def ddd(response:Response):
-    soup = BeautifulSoup(response.text, 'lxml')
-    if soup.select_one('div.loading-more'):
-        yield response
+        path_item = item_dict.get('path')
+        if path_item and f'b-{category_id}' in path_item:
+            return urljoin(self.BASE_URL, path_item)
 
+        children_items = item_dict.get('children')
+        if not children_items:
+            return
 
-def is_end(response_text: str) -> bool:
-    soup = BeautifulSoup(response_text, 'lxml')
-    a = soup.select_one('div.loading-more')
-    return a is not None
+        for item_dict in children_items:
+            rez = self.get_category_url_by_json(category_id, item_dict)
+            if rez:
+                return rez
+
+    def get_category_url(self, category_id: str) -> [str, None]:
+        items_str = self.__get_categories_json()
+        if not items_str:
+            return
+        else:
+            items_str = str(items_str)
+
+        index = items_str.index(f'b-{category_id}')
+        if not index:
+            return
+
+        start_url = items_str.rfind('path', 0, index)
+        end_url = items_str.find('}', index)
+
+        if start_url and end_url:
+            url = items_str[start_url + 9:end_url - 1]
+            return urljoin(self.BASE_URL, url)
+
+    def __get_float_value(self, value: str):
+        try:
+            return float(value)
+        except TypeError:
+            return
+
+    def __get_none_value(self, value: str):
+        try:
+            return None if value == 'null' else value
+        except TypeError:
+            return None
+
+    def __get_bool_value(self, value: str):
+        try:
+            return value and value == 'true'
+        except TypeError:
+            return False
 
 
 def start():
-    url = BASE_URL
+    app = SearsApi()
+    category_id = '1025184'
+    # url = app.get_category_url(category_id)
 
-    s = Session()
-
-    req = Request('get', url, headers={'User-Agent':USER_AGENT})
-    prepped = req.prepare()
-
-    # do something with prepped.body
-    prepped.body = 'No, I want exactly this as the body.'
-
-    # do something with prepped.headers
-    # del prepped.headers['Content-Type']
-    resp = s.send(prepped,
-                  timeout=15
-                  )
-
-    print(resp.status_code)
-
-    #
-    # resp = s.send(prepped,
-    #               stream=stream,
-    #               verify=verify,
-    #               proxies=proxies,
-    #               cert=cert,
-    #               timeout=timeout
-    #               )
-
-    response = get_response(url)
-    while not is_end(response.text):
-        response = get_response(url, method='post')
-
-    aaa = [map_products(response)]
-    requests.get(timeout=15, headers={'User-Agent':USER_AGENT, 'Authorization':'SEARS'}, url='https://www.sears.com/api/sal/v3/products/search?startIndex=1&endIndex=48&searchType=category&catalogId=12605&store=Sears&storeId=10153&zipCode=10101&bratRedirectInd=true&catPredictionInd=true&disableBundleInd=true&filterValueLimit=500&includeFiltersInd=true&shipOrDelivery=true&solrxcatRedirection=true&sortBy=ORIGINAL_SORT_ORDER&whiteListCacheLoad=false&eagerCacheLoad=true&slimResponseInd=true&catGroupId=1031416&seoURLPath=appliances-refrigerators-french-door-refrigerators/1031416')
-    requests.get(timeout=15, headers={'User-Agent': USER_AGENT, 'Authorization': 'SEARS'},
-                 url='https://www.sears.com/api/sal/v3/products/search?startIndex=1&endIndex=48&searchType=category&catalogId=12605&store=Sears&storeId=10153&zipCode=10101&bratRedirectInd=true&catPredictionInd=true&disableBundleInd=true&filterValueLimit=500&includeFiltersInd=true&shipOrDelivery=true&solrxcatRedirection=true&sortBy=ORIGINAL_SORT_ORDER&whiteListCacheLoad=false&eagerCacheLoad=true&slimResponseInd=true&catGroupId=1031416&seoURLPath=appliances-refrigerators-french-door-refrigerators/1031416')
-    requests.get(timeout=15, headers={'User-Agent': USER_AGENT, 'Authorization': 'SEARS'},
-                 url='https://www.sears.com/api/sal/v3/products/search?whiteListCacheLoad=false&storeId=10153&catGroupId=1025184')
-    #     soup = BeautifulSoup(response.text, 'lxml')
-    #     is_end(response)
-    #     soup.select_one("li.next")
-    #
-    #     response = get_response()
-    #
-    #
-    #     soup = BeautifulSoup(response.text, 'lxml')
-    #     [quotes.append(map_quote(quote_soup)) for quote_soup in soup.select("div.quote")]
-    #
-    #     url = soup.select_one("li.next")
-    #     if url:
-    #         url = URL + url.select_one("a").get("href")
-    #
-    # dict_quotes = [{'text': i.text, 'author': i.author, 'author_link': i.author_link, 'tags': i.tags} for i in quotes]
-    # write_csv(dict_quotes)
+    app.get_items(int(category_id))
 
 
 if __name__ == '__main__':

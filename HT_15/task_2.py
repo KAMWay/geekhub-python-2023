@@ -2,8 +2,6 @@
 # (з ним будьте обережні), вибираєте будь-яку на ваш вибір доменну зону і парсите список  доменів - їх там буде десятки
 # тисяч (звичайно ураховуючи пагінацію). Всі отримані значення зберігти в CSV файл.
 from dataclasses import dataclass
-from random import randrange
-from time import sleep
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
@@ -30,9 +28,8 @@ class ExpiredDomainsApi(_Api):
 
     def __get_response(self, url: str) -> Response:
         if url != BASE_URL:
-            sleep(randrange(5, 10, 1))
-        response = self._send_request(url=url, method='get')
-        return response
+            response = self._send_request(url=url, method='get', sleep_time=10)
+            return response
 
     def __get_next_url(self, response_txt: str) -> [str, None]:
         soup = BeautifulSoup(response_txt, 'lxml')
