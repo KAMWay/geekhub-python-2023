@@ -12,12 +12,13 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 
 class _Api:
     def _save_to_csv(self, data: list[dict], *, dirname, filename, delimiter: str = '|', is_append: bool = False):
+        do_str = "appended" if is_append else "written"
         try:
             self.__save_file_csv(data, dirname=dirname, filename=filename, delimiter=delimiter, is_append=is_append)
-            logging.info(f'successful save {filename}')
-            print(f'successful {"appended" if is_append else "written"} {filename}')
+            logging.info(f'successful {do_str} to {filename}')
+            print(f'successful {do_str} to {filename}')
         except Exception:
-            logging.error(f'invalid {"appended" if is_append else "written"} {filename}')
+            logging.error(f'invalid {do_str} to {filename}')
 
     def __save_file_csv(self, data: list[dict], *, dirname, filename, delimiter, is_append):
         if dirname:

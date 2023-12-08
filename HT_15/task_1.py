@@ -14,10 +14,13 @@
 
 
 import json
+import os
 from dataclasses import dataclass
 from urllib.parse import urljoin
 
 from HT_15.api import _Api
+
+RESULTS_DIR = 'results'
 
 
 @dataclass
@@ -44,6 +47,9 @@ class SearsItem:
     show_cashback_badge: bool
     cashback_badge_category: str
     category: str
+
+    def dict(self):
+        return self.__dict__
 
 
 class SearsApi(_Api):
@@ -95,43 +101,43 @@ class SearsApi(_Api):
         }
 
     def get_items(self, category_id: int) -> list[SearsItem]:
-        for i in self.__get_items_json(category_id):
-            print(f'{i.name} | {i.final_price} : {i.regular_price}')
+        if not category_id:
+            return []
 
-        return []
+        filename = f'{category_id}.csv'
+        self.__remove_file(filename)
 
-    def __get_items_json(self, category_id: int) -> list[SearsItem]:
-        start_index, end_index = 1, 48
         items_list = []
+        for items in self.__get_items_json(category_id):
+            self.__save_to_csv(filename, items)
+            items_list += items
+
+        return items_list
+
+    def __remove_file(self, filename):
+        file = os.path.join(RESULTS_DIR, filename)
+        if os.path.isfile(file):
+            os.remove(file)
+
+    def __save_to_csv(self, filename: str, items: list[SearsItem]):
+        item_dict_list = [item.dict() for item in items]
+        self._save_to_csv(item_dict_list, filename=filename, dirname=RESULTS_DIR, is_append=True)
+
+    def __get_items_json(self, category_id: int):
+        start_index, end_index = 1, 48
         while True:
-            print(f"{start_index}-{end_index}")
+            print(f"start parsed items [{start_index}-{end_index}]:")
+
             params = self.__category_params(category_id, start_index, end_index)
             response = self._send_request(url=self.BASE_ITEMS_URL, method='get', headers=self.headers, params=params,
                                           sleep_time=20)
             if not response:
                 break
 
-            items = [self.__parse_sears_item(item) for item in json.loads(response.text)['items']]
-            items_list += items
-            for i in items:
-                print(f'{i.name} | {i.final_price} : {i.regular_price}')
-
-            # for item in json.loads(response.text)['items']:
-            #     yield self.__parse_sears_item(item)
-
-            # if response:
-            #     yield self.fff(json.loads(response.text)['items'])
-            #     # yield json.loads(response.text)['items']
-            # else:
-            #     break
+            yield [self.__parse_sears_item(item) for item in json.loads(response.text)['items']]
 
             start_index += 48
             end_index += 48
-        return items_list
-
-    # def fff(self, items: list):
-    #     for item in items:
-    #         yield self.__parse_sears_item(item)
 
     def __parse_sears_item(self, item_dict: dict) -> SearsItem:
         return SearsItem(
@@ -185,7 +191,10 @@ class SearsApi(_Api):
             if rez:
                 return rez
 
-    def get_category_url(self, category_id: str) -> [str, None]:
+    def get_category_url(self, category_id: int) -> [str, None]:
+        if not category_id:
+            return
+
         items_str = self.__get_categories_json()
         if not items_str:
             return
@@ -222,12 +231,28 @@ class SearsApi(_Api):
             return False
 
 
+def get_id_from_console() -> int:
+    try:
+        number = int(input('Enter category id number: '))
+        if 0 <= number:
+            return number
+        raise ValueError()
+    except ValueError:
+        print('Incorrect input.')
+
+
 def start():
     app = SearsApi()
-    category_id = '1025184'
-    # url = app.get_category_url(category_id)
+    category_id = get_id_from_console()
 
-    app.get_items(int(category_id))
+    # category_id = '1025184'
+    url = app.get_category_url(category_id)
+    if url:
+        print(f'Category {category_id} exist')
+        app.get_items(category_id)
+        print('Done')
+    else:
+        print('Category not found')
 
 
 if __name__ == '__main__':
