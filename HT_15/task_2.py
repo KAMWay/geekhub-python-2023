@@ -27,9 +27,9 @@ class ExpiredDomainsApi(_Api):
         ...
 
     def __get_response(self, url: str) -> Response:
-        if url != BASE_URL:
-            response = self._send_request(url=url, method='get', sleep_time=10)
-            return response
+        sleep_time = 0 if url == BASE_URL else 5
+        response = self._send_request(url=url, method='get', sleep_time=sleep_time)
+        return response
 
     def __get_next_url(self, response_txt: str) -> [str, None]:
         soup = BeautifulSoup(response_txt, 'lxml')
