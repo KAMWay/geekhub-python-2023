@@ -9,8 +9,6 @@ from pathlib import Path
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 
-from items import DetailScrapyItem
-
 
 class Task3ScrapyPipeline:
     results_dir = 'results'
