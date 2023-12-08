@@ -30,10 +30,20 @@ class WebstoreSpider(scrapy.Spider):
 
     def parse_details(self, response: Response):
         url = response.url
-        _id = url[url.rfind("/") + 1:]
+        _id = self.__parse_id(url)
+        # url[url.rfind("/") + 1:]
         rez = self.parser.parse_detail(response.text)
         yield DetailScrapyItem(
             id=_id,
             name=rez.name,
             info=rez.info,
         )
+
+    def __parse_id(self, url: str):
+        start_url = url.rfind("/")
+        start_url = (start_url + 1) if start_url >= 0 else 0
+
+        end_url = url.find('?', start_url)
+        end_url = len(url) if end_url < 0 else end_url
+
+        return url[start_url:end_url]
