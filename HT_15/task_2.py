@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from requests import Response
 
-from api.request_api import RequestApi
+from api.base_api import BaseApi
 
 BASE_URL = 'https://www.expireddomains.net/deleted-domains'
 RESULTS_DIR = 'results'
@@ -22,7 +22,7 @@ class Domain:
         return self.__dict__
 
 
-class ExpiredDomainsApi(RequestApi):
+class ExpiredDomainsApi(BaseApi):
     def __get_response(self, url: str) -> Response:
         sleep_time = 0 if url == BASE_URL else 5
         response = self._send_request(url=url, method='get', sleep_time=sleep_time)

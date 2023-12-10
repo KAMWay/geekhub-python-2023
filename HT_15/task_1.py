@@ -1,7 +1,6 @@
 # 1. Викорисовуючи requests, написати скрипт, який буде приймати на вхід ID категорії із сайту https://www.sears.com
 # і буде збирати всі товари із цієї категорії, збирати по ним всі можливі дані (бренд, категорія, модель, ціна, рейтинг
 # тощо) і зберігати їх у CSV файл (наприклад, якщо категорія має ID 12345, то файл буде називатись 12345_products.csv)
-import collections
 # Таска 1 - замінюємо сайт на https://www.sears.com
 #  Завдання таке ж саме - на вхід отримуєте ІД категорії ("нижнього" типу, тобто це така категорія, в
 #  якій відображаються продукти. # Наприклад, https://www.sears.com/tools-tool-storage/b-1025184 - відповідно,
@@ -15,7 +14,7 @@ import collections
 import json
 from dataclasses import dataclass
 
-from api.request_api import RequestApi
+from api.base_api import BaseApi
 
 RESULTS_DIR = 'results'
 
@@ -49,7 +48,7 @@ class SearsItem:
         return self.__dict__
 
 
-class SearsApi(RequestApi):
+class SearsApi(BaseApi):
     BASE_URL = 'https://www.sears.com'
     BASE_CATEGORY_URL = 'https://www.sears.com/content/configs/header/header.json'
     BASE_ITEMS_URL = 'https://www.sears.com/api/sal/v3/products/search'
