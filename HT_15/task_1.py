@@ -14,7 +14,8 @@
 import json
 from dataclasses import dataclass
 
-from api.base_api import BaseApi
+from api.file_api import FileApi
+from api.request_api import RequestApi
 
 RESULTS_DIR = 'results'
 
@@ -48,7 +49,7 @@ class SearsItem:
         return self.__dict__
 
 
-class SearsApi(BaseApi):
+class SearsApi(RequestApi, FileApi):
     BASE_URL = 'https://www.sears.com'
     BASE_CATEGORY_URL = 'https://www.sears.com/content/configs/header/header.json'
     BASE_ITEMS_URL = 'https://www.sears.com/api/sal/v3/products/search'
