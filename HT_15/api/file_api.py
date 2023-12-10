@@ -7,9 +7,11 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 
 
 class FileApi:
-    def _save_to_csv(self, data: list[dict], *, dirname, filename, is_append: bool = False):
-        do_str = "appended" if is_append else "written"
+    def _save_to_csv(self, data: list[dict], *, dirname, filename, delimiter: str = ',', is_append: bool = False):
+        if not data:
+            return
 
+        do_str = "appended" if is_append else "written"
         try:
             if dirname:
                 self._create_dir(dirname)
@@ -17,7 +19,7 @@ class FileApi:
 
             fieldnames = [str(i) for i in data[0].keys()]
             with open(file, "a" if is_append else "w", newline='', encoding='UTF-8') as f:
-                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                writer = csv.DictWriter(f, delimiter=delimiter, fieldnames=fieldnames)
 
                 if not is_append:
                     writer.writeheader()
@@ -37,4 +39,3 @@ class FileApi:
         file = os.path.join(dir_name, file_name) if dir_name else file_name
         if os.path.isfile(file):
             os.remove(file)
-
