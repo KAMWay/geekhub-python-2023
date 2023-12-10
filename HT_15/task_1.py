@@ -1,8 +1,7 @@
 # 1. Викорисовуючи requests, написати скрипт, який буде приймати на вхід ID категорії із сайту https://www.sears.com
 # і буде збирати всі товари із цієї категорії, збирати по ним всі можливі дані (бренд, категорія, модель, ціна, рейтинг
 # тощо) і зберігати їх у CSV файл (наприклад, якщо категорія має ID 12345, то файл буде називатись 12345_products.csv)
-
-
+import collections
 # Таска 1 - замінюємо сайт на https://www.sears.com
 #  Завдання таке ж саме - на вхід отримуєте ІД категорії ("нижнього" типу, тобто це така категорія, в
 #  якій відображаються продукти. # Наприклад, https://www.sears.com/tools-tool-storage/b-1025184 - відповідно,
@@ -14,11 +13,9 @@
 
 
 import json
-import os
 from dataclasses import dataclass
-from urllib.parse import urljoin
 
-from HT_15.api import _Api
+from api.request_api import RequestApi
 
 RESULTS_DIR = 'results'
 
@@ -52,7 +49,7 @@ class SearsItem:
         return self.__dict__
 
 
-class SearsApi(_Api):
+class SearsApi(RequestApi):
     BASE_URL = 'https://www.sears.com'
     BASE_CATEGORY_URL = 'https://www.sears.com/content/configs/header/header.json'
     BASE_ITEMS_URL = 'https://www.sears.com/api/sal/v3/products/search'
@@ -100,30 +97,18 @@ class SearsApi(_Api):
             # 'seoURLPath': "food-grocery-snacks-nuts-seeds-trail-mixes/1038536"
         }
 
-    def get_items(self, category_id: int) -> list[SearsItem]:
+    def save_items(self, category_id: int):
         if not category_id:
             return []
 
-        filename = f'{category_id}.csv'
-        self.__remove_file(filename)
+        file_name = f'{category_id}.csv'
+        self._remove_file(RESULTS_DIR, file_name)
 
-        items_list = []
-        for items in self.__get_items_json(category_id):
-            self.__save_to_csv(filename, items)
-            items_list += items
+        for items in self.__get_items_dict(category_id):
+            item_dict_list = [item.dict() for item in items]
+            self._save_to_csv(item_dict_list, filename=file_name, dirname=RESULTS_DIR, is_append=True)
 
-        return items_list
-
-    def __remove_file(self, filename):
-        file = os.path.join(RESULTS_DIR, filename)
-        if os.path.isfile(file):
-            os.remove(file)
-
-    def __save_to_csv(self, filename: str, items: list[SearsItem]):
-        item_dict_list = [item.dict() for item in items]
-        self._save_to_csv(item_dict_list, filename=filename, dirname=RESULTS_DIR, is_append=True)
-
-    def __get_items_json(self, category_id: int):
+    def __get_items_dict(self, category_id: int):
         start_index, end_index = 1, 48
         while True:
             print(f"start parsed items [{start_index}-{end_index}]:")
@@ -164,53 +149,20 @@ class SearsApi(_Api):
             category=item_dict.get("category")
         )
 
-    def __get_categories_json(self):
+    def is_category_exist(self, category_id: int) -> bool:
+        items_str = self.__get_categories()
+        if not items_str or not category_id:
+            return False
+
+        return f'b-{category_id}' in str(items_str)
+
+    def __get_categories(self):
         try:
             response = self._send_request(url=self.BASE_CATEGORY_URL, method='get', headers=self.headers, sleep_time=10)
-            jsons_list = response.json()
-            return next(i for i in jsons_list if i['itemId'] == 'shop')
+            response_json = response.json()
+            return next(i for i in response_json if i['itemId'] == 'shop')
         except Exception:
             return
-
-    def get_category_url_by_json(self, category_id: str, item_dict: dict = None) -> [str, None]:
-        if not item_dict:
-            item_dict = self.__get_categories_json()
-            if not item_dict:
-                return
-
-        path_item = item_dict.get('path')
-        if path_item and f'b-{category_id}' in path_item:
-            return urljoin(self.BASE_URL, path_item)
-
-        children_items = item_dict.get('children')
-        if not children_items:
-            return
-
-        for item_dict in children_items:
-            rez = self.get_category_url_by_json(category_id, item_dict)
-            if rez:
-                return rez
-
-    def get_category_url(self, category_id: int) -> [str, None]:
-        if not category_id:
-            return
-
-        items_str = self.__get_categories_json()
-        if not items_str:
-            return
-        else:
-            items_str = str(items_str)
-
-        index = items_str.index(f'b-{category_id}')
-        if not index:
-            return
-
-        start_url = items_str.rfind('path', 0, index)
-        end_url = items_str.find('}', index)
-
-        if start_url and end_url:
-            url = items_str[start_url + 9:end_url - 1]
-            return urljoin(self.BASE_URL, url)
 
     def __get_float_value(self, value: str):
         try:
@@ -246,13 +198,13 @@ def start():
     category_id = get_id_from_console()
 
     # category_id = '1025184'
-    url = app.get_category_url(category_id)
-    if url:
-        print(f'Category {category_id} exist')
-        app.get_items(category_id)
-        print('Done')
-    else:
+    if not category_id or not app.is_category_exist(category_id):
         print('Category not found')
+        return
+
+    print(f'Category {category_id} exist')
+    app.save_items(category_id)
+    print('Done')
 
 
 if __name__ == '__main__':

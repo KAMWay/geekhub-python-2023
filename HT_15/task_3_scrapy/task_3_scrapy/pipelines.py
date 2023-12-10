@@ -15,11 +15,11 @@ class Task3ScrapyPipeline:
 
     DIR = Path(Path.cwd(), results_dir)
 
-    def __save_to_csv(self, item_dict: dict, *, delimiter: str = '|'):
+    def __save_to_csv(self, item_dict: dict):
         file = Path(self.DIR, f'{item_dict["id"]}.csv')
         fieldnames = item_dict.keys()
         with open(file, "w", newline='', encoding='UTF-8') as f:
-            writer = csv.DictWriter(f, delimiter=delimiter, fieldnames=fieldnames)
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerow(item_dict)
 

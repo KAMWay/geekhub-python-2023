@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from requests import Response
 
-from HT_15.api import _Api
+from api.request_api import RequestApi
 
 BASE_URL = 'https://www.expireddomains.net/deleted-domains'
 RESULTS_DIR = 'results'
@@ -22,10 +22,7 @@ class Domain:
         return self.__dict__
 
 
-class ExpiredDomainsApi(_Api):
-    def parser_urls(self):
-        ...
-
+class ExpiredDomainsApi(RequestApi):
     def __get_response(self, url: str) -> Response:
         sleep_time = 0 if url == BASE_URL else 5
         response = self._send_request(url=url, method='get', sleep_time=sleep_time)
@@ -43,23 +40,25 @@ class ExpiredDomainsApi(_Api):
         soup = BeautifulSoup(response_txt, 'lxml')
         return [Domain(td.select_one('a').get_text()) for td in soup.select('td.field_domain')]
 
-    def get_domains(self) -> list[Domain]:
+    def save_domains(self):
+        self._remove_file(RESULTS_DIR, RESULTS_FILENAME)
         url = BASE_URL
-        domains = []
+
         while url:
             response = self.__get_response(url)
             if not response:
                 continue
 
-            domains += self.__parce_domains(response.text)
+            domains = self.__parce_domains(response.text)
+            item_dict_list = [item.dict() for item in domains]
+            self._save_to_csv(item_dict_list, filename=RESULTS_FILENAME, dirname=RESULTS_DIR, is_append=True)
+
             url = self.__get_next_url(response.text)
-        return domains
 
 
 def start():
     api = ExpiredDomainsApi()
-    domains = [d.dict() for d in api.get_domains()]
-    api._save_to_csv(domains, filename=RESULTS_FILENAME, dirname=RESULTS_DIR)
+    api.save_domains()
 
 
 if __name__ == '__main__':
