@@ -64,7 +64,7 @@ class RobotSpareBin:
     ORDERS_URL = 'https://robotsparebinindustries.com/orders.csv'
 
     ACTION_TIMEOUT = 1
-    WAIT_TIMEOUT = 15
+    WAIT_TIMEOUT = 10
 
     DEFAULT_SERVICE_ARGS = [
         '--allow-running-insecure',
@@ -161,12 +161,15 @@ class RobotSpareBin:
         self.wait_until()
 
     def open_preview_image(self):
+        self.__driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        self.wait_until()
         preview_btn = self.__driver.find_element(By.ID, 'preview')
         preview_btn.click()
-        self.wait_locator((By.ID, 'robot-preview-image'), False)
 
     def save_preview_image(self, file: Path):
         self.open_preview_image()
+
+        self.wait_locator((By.ID, 'robot-preview-image'), False)
 
         head_img_url = self.__driver.find_element(By.XPATH, '//img[@alt="Head"]').get_attribute('src')
         body_img_url = self.__driver.find_element(By.XPATH, '//img[@alt="Body"]').get_attribute('src')
@@ -210,21 +213,21 @@ class RobotSpareBin:
         while not self.is_order_successful():
             self.order_btn_click()
 
-        id = self.__driver.find_element(By.CLASS_NAME, 'badge-success').text
-        id = id[id.rfind('-') + 1:]
+        _id = self.__driver.find_element(By.CLASS_NAME, 'badge-success').text
+        _id = _id[_id.rfind('-') + 1:]
 
         receipt_element = self.__driver.find_element(By.ID, 'receipt')
         receipt_html = receipt_element.get_attribute('innerHTML')
 
-        return RobotOrderReceipt(id=id, content=receipt_html)
+        return RobotOrderReceipt(id=_id, content=receipt_html)
 
-    def save_receipt_to_pdf(self, order: RobotOrderReceipt, preview_img_file: Path):
-        content = f'{order.content}'
+    def save_receipt_to_pdf(self, receipt: RobotOrderReceipt, preview_img_file: Path):
+        content = f'{receipt.content}'
 
         if os.path.exists(preview_img_file):
             content += f'<img src="{preview_img_file}"/>'
 
-        file = Path(self.RESULT_DIR, f'{order.id}_robot.pdf')
+        file = Path(self.RESULT_DIR, f'{receipt.id}_robot.pdf')
         with open(file, "w+b") as pdf_file:
             pisa.CreatePDF(content, pdf_file)
             pdf_file.close()

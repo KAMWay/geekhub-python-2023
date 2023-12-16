@@ -46,8 +46,8 @@ class RobotSpareBin:
     BASE_URL = 'https://robotsparebinindustries.com'
     ORDERS_URL = 'https://robotsparebinindustries.com/orders.csv'
 
-    ACTION_TIMEOUT = 3
-    WAIT_TIMEOUT = 15
+    ACTION_TIMEOUT = 1
+    WAIT_TIMEOUT = 10
 
     DEFAULT_SERVICE_ARGS = [
         '--allow-running-insecure',
@@ -169,9 +169,10 @@ class RobotSpareBin:
 
     def open_preview_image(self):
         try:
+            self.__driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            self.wait_until()
             preview_btn = self.__driver.find_element(By.ID, 'preview')
             preview_btn.click()
-            self.wait_locator((By.ID, 'robot-preview-image'), False)
         except (TimeoutException, WebDriverException, NoSuchElementException):
             raise RobotSpareBinException('invalid get preview image')
 
@@ -179,6 +180,8 @@ class RobotSpareBin:
         self.open_preview_image()
 
         try:
+            self.wait_locator((By.ID, 'robot-preview-image'), False)
+
             head_img_url = self.__driver.find_element(By.XPATH, '//img[@alt="Head"]').get_attribute('src')
             body_img_url = self.__driver.find_element(By.XPATH, '//img[@alt="Body"]').get_attribute('src')
             legs_img_url = self.__driver.find_element(By.XPATH, '//img[@alt="Legs"]').get_attribute('src')
@@ -239,14 +242,14 @@ class RobotSpareBin:
         except (WebDriverException, NoSuchElementException):
             raise RobotSpareBinException('invalid get order')
 
-    def save_receipt_to_pdf(self, order: RobotOrderReceipt, preview_img_file: Path):
+    def save_receipt_to_pdf(self, receipt: RobotOrderReceipt, preview_img_file: Path):
         try:
-            content = f'{order.content}'
+            content = f'{receipt.content}'
 
             if preview_img_file:
                 content += f'<img src="{preview_img_file}"/>'
 
-            file = Path(self.RESULT_DIR, f'{order.id}_robot.pdf')
+            file = Path(self.RESULT_DIR, f'{receipt.id}_robot.pdf')
             with open(file, "w+b") as pdf_file:
                 pisa.CreatePDF(content, pdf_file)
                 pdf_file.close()
