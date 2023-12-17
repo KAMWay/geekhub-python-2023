@@ -101,16 +101,16 @@ class RobotSpareBin:
             shutil.rmtree(self.RESULT_DIR)
         self.RESULT_DIR.mkdir(parents=True, exist_ok=True)
 
-    def wait_until(self, timeout: int = ACTION_TIMEOUT):
-        action = webdriver.ActionChains(self.__driver)
-        action.pause(randrange(timeout, timeout + 2, 1))
-        action.perform()
-
     def get_orders_data(self):
         request = requests.get(self.ORDERS_URL)
         request.raise_for_status()
         rows = csv.reader(request.text.splitlines()[1:])
         return [RobotOrderInputData(*row) for row in rows]
+
+    def wait_until(self, timeout: int = ACTION_TIMEOUT):
+        action = webdriver.ActionChains(self.__driver)
+        action.pause(randrange(timeout, timeout + 2, 1))
+        action.perform()
 
     def wait_locator(self, locator: Tuple[str, str], is_click: bool = True):
         driver_wait = WebDriverWait(self.__driver, self.WAIT_TIMEOUT)
@@ -121,7 +121,6 @@ class RobotSpareBin:
     def open_order_page(self):
         self.__driver.get(self.BASE_URL)
         self.wait_locator((By.LINK_TEXT, "Order your robot!"))
-        self.wait_until()
 
     def do_order(self, order_data: RobotOrderInputData):
         try:
@@ -162,14 +161,11 @@ class RobotSpareBin:
 
     def open_preview_image(self):
         self.__driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        self.wait_until()
-        preview_btn = self.__driver.find_element(By.ID, 'preview')
-        preview_btn.click()
+        self.wait_locator((By.ID, 'preview'))
+        self.wait_locator((By.ID, 'robot-preview-image'), False)
 
     def save_preview_image(self, file: Path):
         self.open_preview_image()
-
-        self.wait_locator((By.ID, 'robot-preview-image'), False)
 
         head_img_url = self.__driver.find_element(By.XPATH, '//img[@alt="Head"]').get_attribute('src')
         body_img_url = self.__driver.find_element(By.XPATH, '//img[@alt="Body"]').get_attribute('src')
@@ -189,10 +185,6 @@ class RobotSpareBin:
 
         img.save(file)
 
-    def order_btn_click(self):
-        order_btn = self.__driver.find_element(By.ID, 'order')
-        order_btn.click()
-
     def is_alert_danger(self) -> bool:
         try:
             self.__driver.find_element(By.CLASS_NAME, 'alert-danger')
@@ -208,10 +200,11 @@ class RobotSpareBin:
             return not self.is_alert_danger()
 
     def get_receipt(self) -> RobotOrderReceipt:
-        self.order_btn_click()
+        order_btn = self.__driver.find_element(By.ID, 'order')
+        order_btn.click()
 
         while not self.is_order_successful():
-            self.order_btn_click()
+            order_btn.click()
 
         _id = self.__driver.find_element(By.CLASS_NAME, 'badge-success').text
         _id = _id[_id.rfind('-') + 1:]
@@ -235,10 +228,6 @@ class RobotSpareBin:
         if os.path.exists(preview_img_file):
             os.remove(preview_img_file)
 
-    def another_order_btn_click(self):
-        order_btn = self.__driver.find_element(By.ID, 'order-another')
-        order_btn.click()
-
     def start(self):
         try:
             self.create_results_dir()
@@ -249,7 +238,7 @@ class RobotSpareBin:
             self.open_order_page()
             for order_data in orders_data:
                 self.do_order(order_data)
-                self.another_order_btn_click()
+                self.wait_locator((By.ID, 'order-another'))
         except Exception as e:
             print(f'Exception: {e}')
         else:

@@ -94,11 +94,6 @@ class RobotSpareBin:
         except Exception:
             raise RobotSpareBinException(f'invalid remove file {file}')
 
-    def wait_until(self, timeout: int = ACTION_TIMEOUT):
-        action = webdriver.ActionChains(self.__driver)
-        action.pause(randrange(timeout, timeout + 5, 1))
-        action.perform()
-
     def get_orders_data(self):
         try:
             request = requests.get(self.ORDERS_URL)
@@ -109,6 +104,11 @@ class RobotSpareBin:
             raise RobotSpareBinException('invalid request')
         except Exception:
             raise RobotSpareBinException('invalid get orders data')
+
+    def wait_until(self, timeout: int = ACTION_TIMEOUT):
+        action = webdriver.ActionChains(self.__driver)
+        action.pause(randrange(timeout, timeout + 5, 1))
+        action.perform()
 
     def wait_locator(self, locator: Tuple[str, str], is_click: bool = True):
         driver_wait = WebDriverWait(self.__driver, self.WAIT_TIMEOUT)
@@ -122,8 +122,6 @@ class RobotSpareBin:
             self.wait_locator((By.LINK_TEXT, "Order your robot!"))
         except (WebDriverException, NoSuchElementException):
             raise RobotSpareBinException('invalid open order page')
-        else:
-            self.wait_until()
 
     def do_order(self, order_data: RobotOrderInputData):
         try:
@@ -164,15 +162,12 @@ class RobotSpareBin:
             self.wait_until()
         except (WebDriverException, NoSuchElementException):
             raise RobotSpareBinException('invalid set order fields')
-        else:
-            self.wait_until()
 
     def open_preview_image(self):
         try:
             self.__driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            self.wait_until()
-            preview_btn = self.__driver.find_element(By.ID, 'preview')
-            preview_btn.click()
+            self.wait_locator((By.ID, 'preview'))
+            self.wait_locator((By.ID, 'robot-preview-image'), False)
         except (TimeoutException, WebDriverException, NoSuchElementException):
             raise RobotSpareBinException('invalid get preview image')
 
@@ -180,8 +175,6 @@ class RobotSpareBin:
         self.open_preview_image()
 
         try:
-            self.wait_locator((By.ID, 'robot-preview-image'), False)
-
             head_img_url = self.__driver.find_element(By.XPATH, '//img[@alt="Head"]').get_attribute('src')
             body_img_url = self.__driver.find_element(By.XPATH, '//img[@alt="Body"]').get_attribute('src')
             legs_img_url = self.__driver.find_element(By.XPATH, '//img[@alt="Legs"]').get_attribute('src')
@@ -204,13 +197,6 @@ class RobotSpareBin:
         except Exception:
             raise RobotSpareBinException('invalid save preview image')
 
-    def order_btn_click(self):
-        try:
-            order_btn = self.__driver.find_element(By.ID, 'order')
-            order_btn.click()
-        except (WebDriverException, NoSuchElementException):
-            raise RobotSpareBinException('invalid order button click')
-
     def is_alert_danger(self) -> bool:
         try:
             self.__driver.find_element(By.CLASS_NAME, 'alert-danger')
@@ -226,19 +212,20 @@ class RobotSpareBin:
             return not self.is_alert_danger()
 
     def get_receipt(self) -> RobotOrderReceipt:
-        self.order_btn_click()
+        order_btn = self.__driver.find_element(By.ID, 'order')
+        order_btn.click()
 
         while not self.is_order_successful():
-            self.order_btn_click()
+            order_btn.click()
 
         try:
-            id = self.__driver.find_element(By.CLASS_NAME, 'badge-success').text
-            id = id[id.rfind('-') + 1:]
+            _id = self.__driver.find_element(By.CLASS_NAME, 'badge-success').text
+            _id = _id[_id.rfind('-') + 1:]
 
             receipt_element = self.__driver.find_element(By.ID, 'receipt')
             receipt_html = receipt_element.get_attribute('innerHTML')
 
-            return RobotOrderReceipt(id=id, content=receipt_html)
+            return RobotOrderReceipt(id=_id, content=receipt_html)
         except (WebDriverException, NoSuchElementException):
             raise RobotSpareBinException('invalid get order')
 
@@ -258,13 +245,6 @@ class RobotSpareBin:
         else:
             self.remove_file(preview_img_file)
 
-    def another_order_btn_click(self):
-        try:
-            order_btn = self.__driver.find_element(By.ID, 'order-another')
-            order_btn.click()
-        except (WebDriverException, NoSuchElementException):
-            raise RobotSpareBinException('invalid another button click')
-
     def start(self):
         try:
             self.create_results_dir()
@@ -275,7 +255,7 @@ class RobotSpareBin:
             self.open_order_page()
             for order_data in orders_data:
                 self.do_order(order_data)
-                self.another_order_btn_click()
+                self.wait_locator((By.ID, 'order-another'))
 
         except RobotSpareBinException as e:
             print(f'Exception: {e}')
