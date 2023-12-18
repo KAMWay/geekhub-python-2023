@@ -1,9 +1,2 @@
-beautifulsoup4==4.12.2
-itemadapter~=0.8.0
-lxml==4.9.3
-Pillow~=10.1.0
-requests==2.31.0
-Scrapy==2.11.0
-selenium==4.16.0
-webdriver-manager==4.0.1
-xhtml2pdf~=0.2.13
+-r requirements_ht_15.txt
+-r requirements_ht_16.txt
