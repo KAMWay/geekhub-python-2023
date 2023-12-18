@@ -105,27 +105,27 @@ class RobotSpareBin:
         except Exception:
             raise RobotSpareBinException('invalid get orders data')
 
-    def wait_until(self, timeout: int = ACTION_TIMEOUT):
+    def wait_timeout(self, timeout: int = ACTION_TIMEOUT):
         action = webdriver.ActionChains(self.__driver)
         action.pause(randrange(timeout, timeout + 5, 1))
         action.perform()
 
-    def wait_locator(self, locator: Tuple[str, str], is_click: bool = True):
+    def wait_until_event(self, locator: Tuple[str, str], clicked: bool = True):
         driver_wait = WebDriverWait(self.__driver, self.WAIT_TIMEOUT)
         element = driver_wait.until(EC.presence_of_element_located(locator))
-        if is_click:
+        if clicked:
             element.click()
 
     def open_order_page(self):
         try:
             self.__driver.get(self.BASE_URL)
-            self.wait_locator((By.LINK_TEXT, "Order your robot!"))
+            self.wait_until_event((By.LINK_TEXT, "Order your robot!"))
         except (WebDriverException, NoSuchElementException):
             raise RobotSpareBinException('invalid open order page')
 
     def do_order(self, order_data: RobotOrderInputData):
         try:
-            self.wait_locator((By.CSS_SELECTOR, 'button.btn-dark'))
+            self.wait_until_event((By.CSS_SELECTOR, 'button.btn-dark'))
             print('order tab open')
 
             self.set_order_fields(order_data)
@@ -150,24 +150,24 @@ class RobotSpareBin:
 
             header_input = Select(header_input)
             header_input.select_by_value(str(order_data.head))
-            self.wait_until()
+            self.wait_timeout()
 
             legs_input.send_keys(order_data.legs)
-            self.wait_until()
+            self.wait_timeout()
 
             address_input.send_keys(order_data.address)
-            self.wait_until()
+            self.wait_timeout()
 
             body_input.click()
-            self.wait_until()
+            self.wait_timeout()
         except (WebDriverException, NoSuchElementException):
             raise RobotSpareBinException('invalid set order fields')
 
     def open_preview_image(self):
         try:
             self.__driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            self.wait_locator((By.ID, 'preview'))
-            self.wait_locator((By.ID, 'robot-preview-image'), False)
+            self.wait_until_event((By.ID, 'preview'))
+            self.wait_until_event((By.ID, 'robot-preview-image'), False)
         except (TimeoutException, WebDriverException, NoSuchElementException):
             raise RobotSpareBinException('invalid get preview image')
 
@@ -206,7 +206,7 @@ class RobotSpareBin:
 
     def is_order_successful(self) -> bool:
         try:
-            self.wait_locator((By.ID, 'receipt'), False)
+            self.wait_until_event((By.ID, 'receipt'), False)
             return True
         except (WebDriverException, NoSuchElementException, TimeoutException):
             return not self.is_alert_danger()
@@ -250,12 +250,12 @@ class RobotSpareBin:
             self.create_results_dir()
             orders_data = self.get_orders_data()
             print('get orders input data done')
-            self.wait_until()
+            self.wait_timeout()
 
             self.open_order_page()
             for order_data in orders_data:
                 self.do_order(order_data)
-                self.wait_locator((By.ID, 'order-another'))
+                self.wait_until_event((By.ID, 'order-another'))
 
         except RobotSpareBinException as e:
             print(f'Exception: {e}')
