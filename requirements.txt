@@ -1,2 +1,2 @@
--r requirements_ht_15.txt
--r requirements_ht_16.txt
+-r /ht_15/requirements.txt
+-r /ht_16/requirements.txt
