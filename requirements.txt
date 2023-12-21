@@ -1,2 +1,0 @@
--r ./ht_15/requirements.txt
--r ./ht_16/requirements.txt
