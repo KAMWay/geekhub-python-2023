@@ -1,0 +1,31 @@
+{% block sidebar %}
+    <ul class="sidebar-nav">
+        <li><a href="{% url 'index' %}">Home</a></li>
+        <li><a href="{% url 'index' %}admin">admin</a></li>
+        <li><a href="{% url 'product:index' %}">products (json)</a></li>
+        <li><a href="{% url 'order:index' %}">order</a></li>
+    </ul>
+
+    <button onclick="window.location.href='{% url 'order:save' %}';">
+        New order
+    </button>
+{% endblock %}
+
+{% block content %}
+    {% if order_list %}
+        <fieldset>
+            <legend><h1>Exist orders</h1></legend>
+            <ul>
+                {% for order in order_list %}
+                    <li>
+                        <a href="{% url 'order:detail' order.id %}" title="create at: {{ order.order_date }}">
+                            Order {{ order.id }} amount: {{ order.order_amount }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </fieldset>
+    {% else %}
+        <p>No orders are available.</p>
+    {% endif %}
+{% endblock %}

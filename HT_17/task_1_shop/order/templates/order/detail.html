@@ -1,0 +1,26 @@
+{% block sidebar %}
+    <ul class="sidebar-nav">
+        <li><a href="{% url 'index' %}">Home</a></li>
+        <li><a href="{% url 'index' %}admin">admin</a></li>
+        <li><a href="{% url 'product:index' %}">products (json)</a></li>
+        <li><a href="{% url 'order:index' %}">order</a></li>
+    </ul>
+{% endblock %}
+
+{% block content %}
+    {% if detail_list %}
+        <ul>
+            <ul>
+                {% for item in detail_list %}
+                    <li>
+                        <a href="{% url 'product:detail' item.product_id %}" title="product json">
+                            {{ item.product_quantity }} x Product {{ item.product_id }} (json)
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </ul>
+    {% else %}
+        <p>No items are available.</p>
+    {% endif %}
+{% endblock %}
