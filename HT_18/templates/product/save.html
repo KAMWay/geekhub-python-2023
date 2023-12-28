@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block base %}
+    <div class="my-3">
+        <form action="{% url 'product:save' %}" method="post">
+            {% csrf_token %}
+            <div class="form-floating mb-3">
+                {{ form.ids }}
+                <label for="id_ids">Enter the ids separated by comma</label>
+            </div>
+            <div id="formHelpBlock" class="form-text">
+                Ids must be in format 'A123456789' and separate by comma. Max length is 100. Example:
+                A123456789,A111222333,...
+            </div>
+            <button type="submit" class="btn btn-primary my-3">Do</button>
+        </form>
+    </div>
+{% endblock %}

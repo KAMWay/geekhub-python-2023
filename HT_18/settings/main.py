@@ -1,7 +1,7 @@
 from settings.base import *
 
 INSTALLED_APPS += [
-
+    'apps.product.apps.ProductConfig'
 ]
 
 STATICFILES_DIRS = [

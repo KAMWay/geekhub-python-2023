@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block base %}
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Price</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            {% if product_list %}
+                {% for product in product_list %}
+                    <th scope="row">
+                        <a href="{% url 'product:detail' product.id %}" title="Detail info ">{{ product.id }}</a>
+                    </th>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.sale_price }}</td>
+                {% endfor %}
+            {% endif %}
+        </tr>
+        </tbody>
+    </table>
+{% endblock %}
