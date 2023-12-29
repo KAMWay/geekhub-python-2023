@@ -10,17 +10,17 @@
         </tr>
         </thead>
         <tbody>
-        <tr>
-            {% if product_list %}
-                {% for product in product_list %}
+        {% if product_list %}
+            {% for product in product_list %}
+                <tr>
                     <th scope="row">
                         <a href="{% url 'product:detail' product.id %}" title="Detail info ">{{ product.id }}</a>
                     </th>
                     <td>{{ product.name }}</td>
                     <td>{{ product.sale_price }}</td>
-                {% endfor %}
-            {% endif %}
-        </tr>
+                </tr>
+            {% endfor %}
+        {% endif %}
         </tbody>
     </table>
 {% endblock %}

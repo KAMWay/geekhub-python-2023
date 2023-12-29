@@ -1,47 +1,40 @@
-from time import sleep
+import logging
+from concurrent.futures.thread import ThreadPoolExecutor
 
 from django.shortcuts import render
 from django.views import generic
+from django.views.decorators.csrf import csrf_exempt
 from .forms import ProductForm
 from .models import Product
-from .tasks import ScrapingTask
+from .tasks import create_task
 
-import logging
+logger = logging.getLogger('django')
+executor = ThreadPoolExecutor(max_workers=1)
 
-logger = logging.getLogger(__name__)
 
-# Create your views here.
 class SaveFormView(generic.FormView):
     template_name = 'product/save.html'
     form_class = ProductForm
 
+    # @csrf_exempt
     def post(self, request, *args, **kwargs):
         form = ProductForm(request.POST)
         context = {'form': ProductForm()}
 
         if form.is_valid():
+            ids_str = form.cleaned_data['ids']
+            ids = (item.strip() for item in ids_str.split(sep=','))
             try:
-                ids_str = form.cleaned_data['ids']
-                ids = [item.strip() for item in ids_str.split(sep=',')]
-                self.__scrap_task(ids)
-                context.update({'message': 'Products scraping start successfully'})
-            except Exception:
-                context.update({'message': 'Products scraping start unsuccessfully'})
+                # task = create_task.delay(list(set(ids)))
+                task = create_task(list(set(ids)))
+            except Exception as e:
+                print(f'{e}')
+
+            context.update({'message': f'Products scraping start successfully'})
         else:
             context.update({'message': 'Form data unsuccessfully'})
 
         return render(request, 'product/save.html', context=context)
-
-    def __scrap_task(self, ids: list):
-        for id in ids:
-            try:
-                task = ScrapingTask()
-                task.start(id)
-                sleep(20)
-            except Exception as e:
-                logger.warning(f'Exception scraping {id}: {e}')
-            else:
-                logger.info(f'Scraping {id} done')
 
 
 class ProductListView(generic.ListView):

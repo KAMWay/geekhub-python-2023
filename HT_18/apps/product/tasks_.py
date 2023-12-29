@@ -5,7 +5,7 @@ from time import sleep
 from urllib.parse import urljoin
 
 import requests
-from celery import shared_task
+
 from .models import Product
 
 logger = logging.getLogger('django')
@@ -43,10 +43,12 @@ class ScrapingTask:
     def __init__(self, ids: set):
         self.__ids = ids
 
-    def run(self):
+    def start(self):
         for id in self.__ids:
             product = self.scrap_by_id(id)
-            product.save()
+            if product:
+                product.save()
+                logger.info(f'Product by id {id} save')
 
     def scrap_by_id(self, product_id: str) -> Product:
         logger.info(f'Start scrapping {product_id}')
@@ -99,14 +101,3 @@ class ScrapingTask:
             return int(value)
         except TypeError:
             return 0
-
-
-@shared_task
-def create_task(ids: list):
-    task = ScrapingTask(set(ids))
-    task.run()
-
-
-# @shared_task
-# def create_task(ids: list):
-#     logger.info(f"Task executed {ids}")

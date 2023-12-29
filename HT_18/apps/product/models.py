@@ -17,6 +17,9 @@ class Product(models.Model):
     default_seller_id = models.CharField(max_length=100)
     store_id = models.IntegerField()
 
+    def __str__(self):
+        return self.id
+
 
 
 # назва, ціна, ІД, короткий опис
