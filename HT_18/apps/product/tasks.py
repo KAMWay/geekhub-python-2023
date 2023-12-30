@@ -40,8 +40,8 @@ class ScrapingTask:
     def __init__(self, ids: set):
         self.__ids = ids
 
-    def start(self):
-        logger.info('Scraping start')
+    def run(self):
+        logger.info('Task start')
         for _id in self.__ids:
             product = self.__scrap_by_id(_id)
             if product:
@@ -50,10 +50,10 @@ class ScrapingTask:
                     logger.info(f'Product by id {_id} save successful')
                 except Exception:
                     logger.error(f'Product by id {_id} save unsuccessful')
-        logger.info('Scraping done')
+        logger.info('Task done')
 
     def __scrap_by_id(self, product_id: str) -> Product:
-        logger.info(f'Start scrapping {product_id}')
+        logger.info(f'Start scrapping product by id: {product_id}')
         try:
             sleep(randint(20, 30))
             response = requests.get(urljoin(self.DETAIL_URL, product_id), params=self.PARAMS, headers=self.HEADERS, )
@@ -61,9 +61,9 @@ class ScrapingTask:
             product_dict = json.loads(response.text)['productDetail']['softhardProductdetails'][0]
             return self.__parse_product(product_dict)
         except Exception as e:
-            logger.error(f"Can't scraping product by id {product_id}: {e}")
+            logger.error(f"Can't scraping product by id: {product_id}: {e}")
         finally:
-            logger.info(f'Stop scrapping {product_id}')
+            logger.info(f'Stop scrapping product by id: {product_id}')
 
     def __parse_product(self, product_dict: dict) -> Product:
         url = product_dict.get('seoUrl')
