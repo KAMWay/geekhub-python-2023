@@ -1,22 +1,19 @@
 import logging
-from concurrent.futures.thread import ThreadPoolExecutor
+import subprocess
 
 from django.shortcuts import render
 from django.views import generic
-from django.views.decorators.csrf import csrf_exempt
+
 from .forms import ProductForm
 from .models import Product
-from .tasks import create_task
 
 logger = logging.getLogger('django')
-executor = ThreadPoolExecutor(max_workers=1)
 
 
 class SaveFormView(generic.FormView):
     template_name = 'product/save.html'
     form_class = ProductForm
 
-    # @csrf_exempt
     def post(self, request, *args, **kwargs):
         form = ProductForm(request.POST)
         context = {'form': ProductForm()}
@@ -24,17 +21,21 @@ class SaveFormView(generic.FormView):
         if form.is_valid():
             ids_str = form.cleaned_data['ids']
             ids = (item.strip() for item in ids_str.split(sep=','))
-            try:
-                # task = create_task.delay(list(set(ids)))
-                task = create_task(list(set(ids)))
-            except Exception as e:
-                print(f'{e}')
-
-            context.update({'message': f'Products scraping start successfully'})
+            self.__scraping(list(set(ids)))
+            context.update({'message': 'Products scraping start successfully'})
         else:
             context.update({'message': 'Form data unsuccessfully'})
 
         return render(request, 'product/save.html', context=context)
+
+    def __scraping(self, ids: list):
+        try:
+            from sys import stdout, stdin, stderr
+            command = f'python manage.py shell --command="from apps.product.tasks import ScrapingTask; ScrapingTask({ids}).start()"'
+            process = subprocess.Popen(command, shell=True, stdin=stdin, stdout=stdout, stderr=stderr)
+            logger.info(f'subprocess {process.pid} run successful')
+        except Exception:
+            logger.error(f'subprocess run unsuccessful')
 
 
 class ProductListView(generic.ListView):
