@@ -48,8 +48,8 @@ class ScrapingTask:
                 try:
                     product.save()
                     logger.info(f'Product by id {_id} save successful')
-                except Exception:
-                    logger.error(f'Product by id {_id} save unsuccessful')
+                except Exception as e:
+                    logger.error(f'Product by id {_id} save unsuccessful: {e}')
         logger.info('Task done')
 
     def __scrap_by_id(self, product_id: str) -> Product:
@@ -66,7 +66,7 @@ class ScrapingTask:
             logger.info(f'Stop scrapping product by id: {product_id}')
 
     def __parse_product(self, product_dict: dict) -> Product:
-        url = product_dict.get('seoUrl')
+        url = product_dict.get('seoUrl')#product_dict.get("partNum")
         return Product(
             id=self.__parse_id(url),
 

@@ -33,7 +33,7 @@ class SaveFormView(generic.FormView):
         try:
             command = f'python manage.py shell --command="from apps.product.tasks import ScrapingTask; ScrapingTask({ids}).run()"'
             process = subprocess.Popen(command, shell=True, stdin=stdin, stdout=stdout, stderr=stderr)
-            logger.info(f'subprocess {process.pid} run successful')
+            logger.info(f'subprocess id:{process.pid} run successful')
         except Exception:
             logger.error(f'subprocess run unsuccessful')
 
