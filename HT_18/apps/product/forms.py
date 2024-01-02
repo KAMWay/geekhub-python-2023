@@ -9,7 +9,6 @@ class ProductForm(forms.Form):
             attrs={
                 'class': 'form-control',
                 'placeholder': 'Enter the ids separated by comma',
-                # 'aria - describedby': 'formHelpBlock',
             }
         )
     )
@@ -29,4 +28,5 @@ class ProductForm(forms.Form):
     def __is_valid_id(self, id: str):
         if len(id) == 0:
             return False
+
         return all(i.isdigit() or i.isalpha() for i in id)

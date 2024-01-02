@@ -66,7 +66,7 @@ class ScrapingTask:
             logger.info(f'Stop scrapping product by id: {product_id}')
 
     def __parse_product(self, product_dict: dict) -> Product:
-        url = product_dict.get('seoUrl')#product_dict.get("partNum")
+        url = product_dict.get('seoUrl')  # product_dict.get("partNum")
         return Product(
             id=self.__parse_id(url),
 

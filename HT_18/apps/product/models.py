@@ -19,32 +19,3 @@ class Product(models.Model):
 
     def __str__(self):
         return self.id
-
-
-
-# назва, ціна, ІД, короткий опис
-# (якщо є), бренд, категорія, лінка на продукт
-
-# class SearsItem:
-#     brand_name: str
-#     name: str
-#     partNum: str
-#     source: str
-#
-#     additional_attributes_dict: dict
-#
-#     swatchesInd: bool
-#     offer_id: str
-#     upc: str
-#     value_consumer_rating: str
-#     text_consumer_rating: str
-#
-#     lowest_price: float
-#     lowest_price_2: float
-#     final_price: float
-#     regular_price: float
-#     price_dict: dict
-#
-#     show_cashback_badge: bool
-#     cashback_badge_category: str
-#     category: str
