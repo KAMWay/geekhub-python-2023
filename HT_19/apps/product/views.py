@@ -51,17 +51,18 @@ class ProductListView(generic.ListView):
             if cart.is_exist(product_id):
                 cart.delete(product_id)
             else:
-                product_quantity = int(request.GET.get('product_quantity')) or 1
-                cart.update(product_id, product_quantity if product_quantity > 0 else 1)
+                try:
+                    product_quantity = int(request.GET.get('product_quantity'))
+                    if product_quantity > 0:
+                        cart.update(product_id, product_quantity)
+                    else:
+                        raise Exception
+                except Exception:
+                    logger.error(f'added product by id:{product_id} to cart unsuccessful')
 
             return redirect(reverse('product:index'))
-        print(len(cart))
-        [print(item) for item in cart]
 
         return super().get(request)
-
-    def valida(self):
-        ...
 
 
 class ProductDetailView(generic.DetailView):
