@@ -72,3 +72,6 @@ class Cart:
 
     def is_exist(self, product_id) -> bool:
         return product_id in self.cart
+
+    def size(self):
+        return len(self.cart)

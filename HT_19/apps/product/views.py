@@ -2,7 +2,8 @@ import logging
 import subprocess
 from sys import stdout, stdin, stderr
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.views import generic
 
 from .forms import ProductForm
@@ -27,7 +28,7 @@ class SaveFormView(generic.FormView):
         else:
             context.update({'message': 'Form data unsuccessfully'})
 
-        return render(request, 'product/save.html', context=context)
+        return render(request, self.template_name, context=context)
 
     def __run_subprocess(self, ids: set):
         try:
@@ -44,19 +45,23 @@ class ProductListView(generic.ListView):
     context_object_name = 'product_list'
 
     def get(self, request, *args, **kwargs):
-        if request.method == 'GET':
-            cart = Cart(request)
-            product_id = request.GET.get('product_id')
-            if product_id:
-                if cart.is_exist(product_id):
-                    cart.delete(product_id)
-                else:
-                    product_quantity = request.GET.get('product_quantity') or 1
-                    cart.update(product_id, product_quantity)
-            print(len(cart))
-            [print(item) for item in cart]
+        cart = Cart(request)
+        product_id = request.GET.get('product_id')
+        if product_id:
+            if cart.is_exist(product_id):
+                cart.delete(product_id)
+            else:
+                product_quantity = int(request.GET.get('product_quantity')) or 1
+                cart.update(product_id, product_quantity if product_quantity > 0 else 1)
 
-        return super().get(request, *args, **kwargs)
+            return redirect(reverse('product:index'))
+        print(len(cart))
+        [print(item) for item in cart]
+
+        return super().get(request)
+
+    def valida(self):
+        ...
 
 
 class ProductDetailView(generic.DetailView):
