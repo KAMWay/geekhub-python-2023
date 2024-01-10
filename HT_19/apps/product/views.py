@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.views import generic
 
 from .forms import ProductForm
-from .models import Product
+from .models import Product, Cart
 
 logger = logging.getLogger('django')
 
@@ -42,6 +42,21 @@ class ProductListView(generic.ListView):
     model = Product
     template_name = 'product/index.html'
     context_object_name = 'product_list'
+
+    def get(self, request, *args, **kwargs):
+        if request.method == 'GET':
+            cart = Cart(request)
+            product_id = request.GET.get('product_id')
+            if product_id:
+                if cart.is_exist(product_id):
+                    cart.delete(product_id)
+                else:
+                    product_quantity = request.GET.get('product_quantity') or 1
+                    cart.update(product_id, product_quantity)
+            print(len(cart))
+            [print(item) for item in cart]
+
+        return super().get(request, *args, **kwargs)
 
 
 class ProductDetailView(generic.DetailView):

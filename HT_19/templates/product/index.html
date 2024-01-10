@@ -15,18 +15,16 @@
                             <p class="h-75">{{ product.name }}</p>
                             <p>price: <span class="fw-bold">${{ product.sale_price }}</span></p>
                         </div>
-
                         <div class="card-footer border-white bg-white">
                             <form method="GET">
                                 <input type="hidden" name="product_id" value="{{ product.id }}">
                                 <input type="hidden" name="product_quantity" value="1">
                                 {% if product.id in request.session.session_key.cart_key %}
-                                    <button type="submit" class="btn btn-w">Add to cart</button>
+                                    <button type="submit" class="btn btn-warning">Remove from cart</button>
                                 {% else %}
                                     <button type="submit" class="btn btn-primary">Add to cart</button>
                                 {% endif %}
                             </form>
-{#                            <a href="?product_id={{ product.id }}&product_quantity" class="btn btn-primary"> Add to cart </a>#}
                         </div>
                     </div>
                 </div>
