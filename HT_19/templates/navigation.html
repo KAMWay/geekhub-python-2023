@@ -23,13 +23,20 @@
             </ul>
         </div>
         <div class="d-flex">
-            <button type="button" class="btn btn-success position-relative">
-                Cart
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+{#            <button type="button" class="btn btn-success position-relative">#}
+{#                Cart#}
+{#                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">#}
+{#                    {{ request.session.session_key.cart_key|length }}#}
+{#                    <span class="visually-hidden">unread messages</span>#}
+{#              </span>#}
+{#            </button>#}
+            <a  type="button" class="nav-link" href="{% url 'product:cart' %}">
+                Cart  
+                <span class="ms-2 position-absolute top-25 start-75 translate-middle badge rounded-pill bg-danger">
                     {{ request.session.session_key.cart_key|length }}
                     <span class="visually-hidden">unread messages</span>
               </span>
-            </button>
+            </a>
         </div>
     </div>
 </nav>

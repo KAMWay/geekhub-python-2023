@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from django.db import models
 
 
@@ -52,11 +50,15 @@ class Cart:
             cart[str(product.id)]['product'] = product
             cart[str(product.id)]['quantity'] = self.cart[product.id]['quantity']
 
+        total = 0
         for item in cart.values():
             item['total'] = item['product'].sale_price * int(item['quantity'])
+            total += item['total']
             yield item
 
-    def update(self, product_id, product_quantity):
+        self.total = total
+
+    def update(self, product_id, product_quantity: int):
         if product_id in self.cart:
             self.cart[product_id]['quantity'] = product_quantity
         else:
@@ -73,5 +75,5 @@ class Cart:
     def is_exist(self, product_id) -> bool:
         return product_id in self.cart
 
-    def size(self):
-        return len(self.cart)
+    def product_quantity(self, product_id) -> int:
+        return self.cart[product_id]['quantity']
