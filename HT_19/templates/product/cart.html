@@ -28,19 +28,19 @@
                     <td>{{ item.total }}</td>
                     <td>
                         <div class="input-group">
-                            <form method="GET">
+                            <form method="POST">{% csrf_token %}
                                 <input type="hidden" name="product_id" value="{{ item.product.id }}">
                                 <input type="hidden" name="product_quantity" value="1">
                                 <button type="submit" title="plus" class="bi bi-bag-plus nav-link mx-1"></button>
                             </form>
-                            <form method="GET">
+                            <form method="POST">{% csrf_token %}
                                 <input type="hidden" name="product_id" value="{{ item.product.id }}">
                                 <input type="hidden" name="product_quantity" value="-1">
                                 <button type="submit" title="dash"
                                         class="bi bi bi-bag-dash nav-link {% if item.quantity < 2 %} text-danger disabled {% endif %}">
                                 </button>
                             </form>
-                            <form method="GET">
+                            <form method="POST">{% csrf_token %}
                                 <input type="hidden" name="product_id" value="{{ item.product.id }}">
                                 <input type="hidden" name="product_quantity" value="0">
                                 <button type="submit" title="trash" class="nav-link bi bi-trash mx-1"></button>
@@ -57,11 +57,16 @@
                 <td></td>
                 <td></td>
                 <td class="fw-bold">{{ cart_items.total }}</td>
-                <td></td>
+                <td>
+                    <div class="input-group">
+                        {% csrf_token %}
+                        <form method="POST">{% csrf_token %}
+                            <button type="submit" title="trash" class="nav-link bi bi-trash mx-1"></button>
+                        </form>
+                    </div>
+                </td>
             </tr>
             </tfoot>
         {% endif %}
-
-
     </table>
 {% endblock %}

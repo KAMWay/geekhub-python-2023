@@ -72,6 +72,10 @@ class Cart:
 
         self.session.modified = True
 
+    def clear(self):
+        del self.session[self.CLIENT_DATA_KEY][self.CLIENT_CART_KEY]
+        self.session.modified = True
+
     def is_exist(self, product_id) -> bool:
         return product_id in self.cart
 

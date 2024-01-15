@@ -79,13 +79,13 @@ class CartView(generic.ListView):
     def get_queryset(self):
         return Cart(self.request)
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
+        product_id = request.POST.get('product_id')
         cart = Cart(request)
-        product_id = request.GET.get('product_id')
         if product_id:
             try:
                 if cart.is_exist(product_id):
-                    upd_quantity = int(request.GET.get('product_quantity'))
+                    upd_quantity = int(request.POST.get('product_quantity'))
                     if upd_quantity == 0:
                         cart.delete(product_id)
                     else:
@@ -96,7 +96,7 @@ class CartView(generic.ListView):
                             raise Exception
             except Exception:
                 logger.error(f'update product by id:{product_id} in cart unsuccessful')
+        else:
+            cart.clear()
 
-            return redirect(reverse('product:cart'))
-
-        return super().get(request)
+        return redirect(reverse('product:cart'))
