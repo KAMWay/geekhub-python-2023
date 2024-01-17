@@ -32,3 +32,7 @@ STATICFILES_DIRS = [
 ]
 
 TEMPLATES[0]['DIRS'].append('templates')
+
+LOGIN_REDIRECT_URL = 'index'
+LOGOUT_REDIRECT_URL = 'index'
+LOGIN_URL = 'login'
