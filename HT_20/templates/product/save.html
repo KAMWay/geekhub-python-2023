@@ -2,8 +2,7 @@
 
 {% block base %}
     <div class="my-3">
-        <form action="{% url 'product:save' %}" method="post">
-            {% csrf_token %}
+        <form action="{% url 'product:save' %}" method="post">{% csrf_token %}
             <div class="form-floating mb-3">
                 {{ form.ids }}
                 <label for="id_ids">Enter the ids separated by comma</label>
