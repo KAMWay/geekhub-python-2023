@@ -1,5 +1,5 @@
 from apps.product.models import Product
-from base import env
+from settings.base import env
 
 
 # Create your models here.
