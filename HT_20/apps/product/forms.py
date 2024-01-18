@@ -23,10 +23,10 @@ class ProductForm(forms.Form):
         if len(ids) > 10:
             return False
 
-        return all(self.__is_valid_id(id) for id in ids)
+        return all(self.__is_valid_id(_id) for _id in ids)
 
-    def __is_valid_id(self, id: str):
-        if len(id) == 0:
+    def __is_valid_id(self, _id: str):
+        if len(_id) == 0:
             return False
 
-        return all(i.isdigit() or i.isalpha() for i in id)
+        return all(i.isdigit() or i.isalpha() for i in _id)

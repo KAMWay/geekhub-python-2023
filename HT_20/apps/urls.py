@@ -20,9 +20,10 @@ from django.contrib.auth import views as auth_views
 from django.urls import path, include
 
 from . import views
+from .product.views import ProductListView
 
 urlpatterns = [
-    path("", views.index, name="index"),
+    path("", ProductListView.as_view(), name="index"),
 
     path("login/", auth_views.LoginView.as_view(), name="login"),
     path("logout/", views.logout_view, name="logout"),

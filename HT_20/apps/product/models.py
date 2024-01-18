@@ -6,7 +6,7 @@ class Product(models.Model):
     id = models.CharField(max_length=12, primary_key=True)
 
     brand_name = models.CharField(max_length=100)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
     main_image_url = models.CharField(max_length=255)
     description = models.TextField()
     url = models.CharField(max_length=255)

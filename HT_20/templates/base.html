@@ -13,8 +13,10 @@
 <div class="container-fluid">
     {% include "navigation.html" %}
 </div>
+
 <div class="container-fluid" id="base">
-    {% if message %}<p><strong>{{ message }}</strong></p>{% endif %}
+{#    {% if message %}<p><strong>{{ message }}</strong></p>{% endif %}#}
+    {% include "messages.html" %}
     {% block base %}{% endblock %}
 </div>
 </body>

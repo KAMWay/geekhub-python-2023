@@ -1,5 +1,6 @@
 import logging
 
+from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.views import generic
@@ -16,10 +17,20 @@ class CartView(generic.ListView):
     template_name = 'cart/index.html'
     context_object_name = 'cart_items'
 
+    def get(self, request, *args, **kwargs):
+        if request.user and request.user.is_superuser:
+            return super().get(request, *args, **kwargs)
+        else:
+            messages.error(request, 'Not access')
+            return redirect('index')
+
     def get_queryset(self):
         return Cart(self.request)
 
     def post(self, request, *args, **kwargs):
+        if request.user and not request.user.is_superuser:
+            redirect('cart:index')
+
         product_id = request.POST.get('product_id')
         cart = Cart(request)
         if product_id:
