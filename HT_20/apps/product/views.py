@@ -59,6 +59,10 @@ class ProductListView(generic.ListView):
     context_object_name = 'products'
 
     def post(self, request, *args, **kwargs):
+        if request.user and not request.user.is_authenticated:
+            messages.error(request, 'Not access')
+            redirect('index')
+
         product_id = request.POST.get('product_id')
         if product_id:
             product_quantity = int(request.POST.get('product_quantity'))
@@ -90,8 +94,6 @@ class ProductListView(generic.ListView):
             products = Product.objects.filter(categories__in=ids)
             context[self.context_object_name] = products
             context[self.CATEGORY_CHOICES_KEY] = ids
-        # elif self.CATEGORY_CHOICES_KEY not in self.request.GET.keys():
-        #     context[self.CATEGORY_CHOICES_KEY] = [category.id for category in categories]
 
         return context
 

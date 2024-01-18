@@ -2,13 +2,12 @@
 
 {% block base %}
 
-    <div class="container">
+    <div class="container my-5 fixed-top">
         {% if form.non_field_errors %}
             {% for error in form.non_field_errors %}
-                <div class="pt-2">
-                    <p class="alert alert-danger">
-                        {{ error }}
-                    </p>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Exception:</strong> {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             {% endfor %}
         {% endif %}
