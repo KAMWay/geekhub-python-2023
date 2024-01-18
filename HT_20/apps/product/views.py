@@ -3,9 +3,7 @@ import subprocess
 from sys import stdout, stdin, stderr
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from django.urls import reverse
 from django.views import generic
 
 from .forms import ProductForm
@@ -53,6 +51,9 @@ class SaveFormView(generic.FormView):
 
 
 class ProductListView(generic.ListView):
+    CATEGORIES_KEY = 'categories'
+    CATEGORY_CHOICES_KEY = 'select_categories'
+
     model = Product
     template_name = 'product/index.html'
     context_object_name = 'products'
@@ -81,14 +82,16 @@ class ProductListView(generic.ListView):
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(object_list=object_list, **kwargs)
         categories = Category.objects.all()
-        context['categories'] = categories
+        context[self.CATEGORIES_KEY] = categories
 
-        select_categories = self.request.GET.getlist('select_categories')
-        if select_categories and '0' not in select_categories:
+        select_categories = self.request.GET.getlist(self.CATEGORY_CHOICES_KEY)
+        if len(select_categories) > 0:
             ids = list(map(int, select_categories))
             products = Product.objects.filter(categories__in=ids)
             context[self.context_object_name] = products
-            context['select_categories'] = ids
+            context[self.CATEGORY_CHOICES_KEY] = ids
+        # elif self.CATEGORY_CHOICES_KEY not in self.request.GET.keys():
+        #     context[self.CATEGORY_CHOICES_KEY] = [category.id for category in categories]
 
         return context
 

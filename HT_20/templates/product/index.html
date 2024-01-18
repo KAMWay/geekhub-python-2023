@@ -1,28 +1,65 @@
 {% extends 'base.html' %}
 
 {% block base %}
-    <div class="col-3">
-        <span class="form-label ms-2">Categories:</span>
-        <form method="get">
-            <select class="form-select mt-2" multiple aria-label="Multiple select example"
-                    onchange="this.form.submit()" name="select_categories">
-                {% if categories %}
-                    <option value="0">All</option>
+
+    <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasWithBothOptions"
+            aria-controls="offcanvasWithBothOptions">Filter
+    </button>
+
+    <div class="offcanvas offcanvas-start" data-bs-scroll="true" tabindex="-1" id="offcanvasWithBothOptions"
+         aria-labelledby="offcanvasWithBothOptionsLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel">Categories:</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            {% if categories %}
+                <form method="get">
                     {% for category in categories %}
-                        <option
-                                {% if select_categories %}
-                                    {% if category.id in select_categories %}
-                                        selected
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="{{ category.id }}"
+                                   id="flexCheckDefault{{ category.id }}" name="select_categories"
+                                    {% if select_categories %}
+                                   {% if category.id in select_categories %}checked{% endif %}
                                     {% endif %}
-                                {% endif %}
-                                        value="{{ category.id }}">
-                            {{ category.name }}
-                        </option>
+                            >
+                            <label class="form-check-label" for="flexCheckDefault{{ category.id }}">
+                                {{ category.name }}
+                            </label>
+                        </div>
                     {% endfor %}
-                {% endif %}
-            </select>
-        </form>
+                    <div class="row align-items-center my-4">
+                        <div class="d-flex align-items-center">
+                            <button class="btn bsb-btn-2xl btn-primary" type="submit">Apply</button>
+                        </div>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
     </div>
+    {##}
+    {#    <div class="col-3">#}
+    {#        <span class="form-label ms-2">Categories:</span>#}
+    {#        <form method="get">#}
+    {#            <select class="form-select mt-2" multiple aria-label="Multiple select example"#}
+    {#                    onchange="this.form.submit()" name="select_categories">#}
+    {#                {% if categories %}#}
+    {#                    <option value="0">All</option>#}
+    {#                    {% for category in categories %}#}
+    {#                        <option#}
+    {% if select_categories %}
+        {% if category.id in select_categories %}
+            selected
+        {% endif %}
+    {% endif %}
+    {#                                        value="{{ category.id }}">#}
+    {#                            {{ category.name }}#}
+    {#                        </option>#}
+    {#                    {% endfor %}#}
+    {#                {% endif %}#}
+    {#            </select>#}
+    {#        </form>#}
+    {#    </div>#}
 
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 py-5">
         {% if products %}
