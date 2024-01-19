@@ -23,7 +23,7 @@ class Product(models.Model):
         related_name='products',
     )
 
-    categories = models.ForeignKey(
+    category = models.ForeignKey(
         'Category',
         on_delete=models.SET_NULL,
         null=True,

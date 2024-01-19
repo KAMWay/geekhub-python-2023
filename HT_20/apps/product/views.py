@@ -92,7 +92,7 @@ class ProductListView(generic.ListView):
         select_categories = self.request.GET.getlist(self.CATEGORY_CHOICES_KEY)
         if len(select_categories) > 0:
             ids = list(map(int, select_categories))
-            products = Product.objects.filter(categories__in=ids)
+            products = Product.objects.filter(category__in=ids)
             context[self.context_object_name] = products
             context[self.CATEGORY_CHOICES_KEY] = ids
 
@@ -111,6 +111,7 @@ class ProductUpdateView(generic.UpdateView):
         'default_seller_id',
         'store_id',
         'description',
+        'category',
     ]
     template_name = 'product/update.html'
     success_url = reverse_lazy("index")
@@ -129,6 +130,8 @@ class ProductUpdateView(generic.UpdateView):
         messages.info(self.request, 'Update success')
 
         return super().get_success_url()
+
+
 
     def post(self, request, *args, **kwargs):
         if request.user and not request.user.is_superuser:
