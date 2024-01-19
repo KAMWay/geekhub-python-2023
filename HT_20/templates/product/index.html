@@ -2,7 +2,8 @@
 
 {% block base %}
 
-    <button id="aaa" class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasWithBothOptions"
+    <button id="aaa" class="btn btn-primary" type="button" data-bs-toggle="offcanvas"
+            data-bs-target="#offcanvasWithBothOptions"
             aria-controls="offcanvasWithBothOptions">Filter
     </button>
 
@@ -37,29 +38,6 @@
             {% endif %}
         </div>
     </div>
-    {##}
-    {#    <div class="col-3">#}
-    {#        <span class="form-label ms-2">Categories:</span>#}
-    {#        <form method="get">#}
-    {#            <select class="form-select mt-2" multiple aria-label="Multiple select example"#}
-    {#                    onchange="this.form.submit()" name="select_categories">#}
-    {#                {% if categories %}#}
-    {#                    <option value="0">All</option>#}
-    {#                    {% for category in categories %}#}
-    {#                        <option#}
-    {% if select_categories %}
-        {% if category.id in select_categories %}
-            selected
-        {% endif %}
-    {% endif %}
-    {#                                        value="{{ category.id }}">#}
-    {#                            {{ category.name }}#}
-    {#                        </option>#}
-    {#                    {% endfor %}#}
-    {#                {% endif %}#}
-    {#            </select>#}
-    {#        </form>#}
-    {#    </div>#}
 
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 py-5">
         {% if products %}
@@ -67,16 +45,23 @@
                 <div class="col d-flex align-items-start">
                     <div class="card shadow-sm h-100">
                         <div class="d-flex justify-content-between card-header fw-bold mb-0 fs-4 text-body-emphasis">
-                            <a class="">{{ product.id }}</a>
+                            <a href="{% url 'product:detail' product.id %}" title="detail">{{ product.id }}</a>
                             {% if request.user.is_superuser %}
                                 <div class="d-flex fs-6">
-                                    <a class="bi bi-pencil-square align-middle"
-                                       href="{% url 'product:detail' product.id %}" title="edit"></a>
-                                    <a href="#" class="bi bi-trash mx-1" title="trash"></a>
+                                    <div>
+                                        <a class="bi bi-pencil-square"
+                                           href="{% url 'product:update' product.id %}" title="update"></a>
+                                    </div>
+                                    <div>
+                                        <button type="button" class="bg-body-tertiary bi bi-trash mx-1 border-0"
+                                                data-bs-toggle="modal" data-bs-target="#confirmModal"
+                                                data-bs-whatever="{% url 'product:delete' product.id %}">
+                                        </button>
+                                    </div>
                                 </div>
                             {% endif %}
                         </div>
-                        <div class="card-body">
+                        <div class=" card-body">
                             <p class="h-75">{{ product.name }}</p>
                             <p>price: <span class="fw-bold">${{ product.sale_price }}</span></p>
                         </div>
@@ -107,4 +92,33 @@
             {% endfor %}
         {% endif %}
     </div>
+
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="confirmModalLabel">Confirm delete product</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="confirmModalForm" method="post" action="">{% csrf_token %}
+                    <div class="modal-body">
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-danger">Confirm</button>
+                        </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const exampleModal = document.getElementById('confirmModal')
+        if (exampleModal) {
+            exampleModal.addEventListener('show.bs.modal', event => {
+                const button = event.relatedTarget
+                const recipient = button.getAttribute('data-bs-whatever')
+                $('#confirmModalForm').attr('action', recipient)
+            })
+        }
+    </script>
 {% endblock %}

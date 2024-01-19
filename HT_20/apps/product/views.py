@@ -3,7 +3,8 @@ import subprocess
 from sys import stdout, stdin, stderr
 
 from django.contrib import messages
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
+from django.urls import reverse_lazy
 from django.views import generic
 
 from .forms import ProductForm
@@ -13,8 +14,8 @@ from ..cart.models import Cart
 logger = logging.getLogger('django')
 
 
-class SaveFormView(generic.FormView):
-    template_name = 'product/save.html'
+class ProductUploadView(generic.FormView):
+    template_name = 'product/upload.html'
     form_class = ProductForm
 
     def get(self, request, *args, **kwargs):
@@ -25,23 +26,19 @@ class SaveFormView(generic.FormView):
             return redirect('index')
 
     def post(self, request, *args, **kwargs):
-        if request.user and not request.user.is_superuser:
-            redirect('product:save')
+        if request.user and request.user.is_superuser:
+            form = ProductForm(request.POST)
+            if form.is_valid():
+                ids_str = form.cleaned_data['ids']
+                ids = set(item.strip() for item in ids_str.split(sep=','))
+                self.run_subprocess(ids)
+                messages.info(request, 'Products scraping start successfully')
+            else:
+                messages.error(request, 'Form data unsuccessfully')
 
-        form = ProductForm(request.POST)
-        context = {'form': ProductForm()}
+        return redirect('product:upload')
 
-        if form.is_valid():
-            ids_str = form.cleaned_data['ids']
-            ids = set(item.strip() for item in ids_str.split(sep=','))
-            self.__run_subprocess(ids)
-            context.update({'message': 'Products scraping start successfully'})
-        else:
-            context.update({'message': 'Form data unsuccessfully'})
-
-        return render(request, self.template_name, context=context)
-
-    def __run_subprocess(self, ids: set):
+    def run_subprocess(self, ids: set):
         try:
             command = f'python manage.py shell --command="from apps.product.tasks import ScrapingTask; ScrapingTask({ids}).run()"'
             process = subprocess.Popen(command, shell=True, stdin=stdin, stdout=stdout, stderr=stderr)
@@ -61,7 +58,7 @@ class ProductListView(generic.ListView):
     def post(self, request, *args, **kwargs):
         if request.user and not request.user.is_authenticated:
             messages.error(request, 'Not access')
-            redirect('index')
+            return redirect('index')
 
         product_id = request.POST.get('product_id')
         if product_id:
@@ -98,10 +95,21 @@ class ProductListView(generic.ListView):
         return context
 
 
-class ProductDetailView(generic.DetailView):
+class ProductUpdateView(generic.UpdateView):
     model = Product
-    template_name = 'product/detail.html'
-    context_object_name = 'product'
+    fields = [
+        'brand_name',
+        'name',
+        'main_image_url',
+        'url',
+        'regular_price',
+        'sale_price',
+        'default_seller_id',
+        'store_id',
+        'description',
+    ]
+    template_name = 'product/update.html'
+    success_url = reverse_lazy("index")
 
     def get(self, request, *args, **kwargs):
         if request.user and request.user.is_superuser:
@@ -109,3 +117,33 @@ class ProductDetailView(generic.DetailView):
         else:
             messages.error(request, 'Not access')
             return redirect('index')
+
+    def post(self, request, *args, **kwargs):
+        if request.user and not request.user.is_superuser:
+            return redirect('product:update')
+
+        return super().post(request, *args, **kwargs)
+
+
+class ProductDeleteView(generic.DeleteView):
+    model = Product
+    success_url = reverse_lazy("index")
+
+    def get(self, request, *args, **kwargs):
+        if request.user and request.user.is_superuser:
+            return super().get(request, *args, **kwargs)
+        else:
+            messages.error(request, 'Not access')
+            return redirect('index')
+
+    def post(self, request, *args, **kwargs):
+        if request.user and not request.user.is_superuser:
+            redirect('product:update')
+
+        return super().post(request, *args, **kwargs)
+
+
+class ProductDetailView(generic.DetailView):
+    model = Product
+    template_name = 'product/detail.html'
+    context_object_name = 'product'

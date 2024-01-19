@@ -18,7 +18,7 @@ class CartView(generic.ListView):
     context_object_name = 'cart_items'
 
     def get(self, request, *args, **kwargs):
-        if request.user and request.user.is_superuser:
+        if request.user and request.user.is_authenticated:
             return super().get(request, *args, **kwargs)
         else:
             messages.error(request, 'Not access')
@@ -28,7 +28,7 @@ class CartView(generic.ListView):
         return Cart(self.request)
 
     def post(self, request, *args, **kwargs):
-        if request.user and not request.user.is_superuser:
+        if request.user and not request.user.is_authenticated:
             redirect('cart:index')
 
         product_id = request.POST.get('product_id')
