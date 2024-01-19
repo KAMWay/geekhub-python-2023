@@ -5,8 +5,14 @@
         <div class="my-3">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Product</h5>
-                    <h6 class="card-subtitle mb-2" title="id">{{ product.id }}</h6>
+                    <div class="d-flex justify-content-between">
+                        <div class="col-2">
+                            <h5 class="card-subtitle mb-2" title="id">
+                                <span class="text-secondary text-opacity-50 text-end">Product:</span>
+                                {{ product.id }}
+                            </h5>
+                        </div>
+                    </div>
                     <table class="table">
                         <tbody>
                         <tr>
@@ -47,8 +53,8 @@
                 </div>
                 <div class="col p-3">
                     <label for="descriptionTextarea" class="form-label fw-bold">Description:</label>
-                    <div class="form-control" id="descriptionTextarea" >
-                         {{ product.description | safe }}
+                    <div class="form-control" id="descriptionTextarea">
+                        {{ product.description | safe }}
                     </div>
                 </div>
             </div>

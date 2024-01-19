@@ -36,7 +36,11 @@ class ProductUploadView(generic.FormView):
             else:
                 messages.error(request, 'Form data unsuccessfully')
 
-        return redirect('product:upload')
+        redirect_url = request.GET.get('next')
+        if redirect_url:
+            return redirect(redirect_url)
+        else:
+            return redirect('product:upload')
 
     def run_subprocess(self, ids: set):
         try:
@@ -115,8 +119,16 @@ class ProductUpdateView(generic.UpdateView):
         if request.user and request.user.is_superuser:
             return super().get(request, *args, **kwargs)
         else:
-            messages.error(request, 'Not access')
+            messages.error(request, 'Not access for update')
             return redirect('index')
+
+    def get_success_url(self):
+        redirect_url = self.request.GET.get('next')
+        if redirect_url:
+            self.success_url = redirect_url
+        messages.info(self.request, 'Update success')
+
+        return super().get_success_url()
 
     def post(self, request, *args, **kwargs):
         if request.user and not request.user.is_superuser:
@@ -133,7 +145,7 @@ class ProductDeleteView(generic.DeleteView):
         if request.user and request.user.is_superuser:
             return super().get(request, *args, **kwargs)
         else:
-            messages.error(request, 'Not access')
+            messages.error(request, 'Not access for delete')
             return redirect('index')
 
     def post(self, request, *args, **kwargs):

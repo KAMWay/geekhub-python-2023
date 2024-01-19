@@ -21,8 +21,8 @@ class CartView(generic.ListView):
         if request.user and request.user.is_authenticated:
             return super().get(request, *args, **kwargs)
         else:
-            messages.error(request, 'Not access')
-            return redirect('index')
+            messages.error(request, 'Please login to continue.')
+            return redirect('account:login')
 
     def get_queryset(self):
         return Cart(self.request)
@@ -34,21 +34,17 @@ class CartView(generic.ListView):
         product_id = request.POST.get('product_id')
         cart = Cart(request)
         if product_id:
-            try:
-                if cart.is_exist(product_id):
-                    upd_quantity = int(request.POST.get('product_quantity'))
-                    if upd_quantity == 0:
-                        cart.delete(product_id)
+            if cart.is_exist(product_id):
+                upd_quantity = int(request.POST.get('product_quantity'))
+                if upd_quantity == 0:
+                    cart.delete(product_id)
+                else:
+                    product_quantity = cart.product_quantity(product_id)
+                    if product_quantity + upd_quantity > 0:
+                        cart.update(product_id, product_quantity + upd_quantity)
                     else:
-                        product_quantity = cart.product_quantity(product_id)
-                        if product_quantity + upd_quantity > 0:
-                            cart.update(product_id, product_quantity + upd_quantity)
-                        else:
-                            raise Exception
-            except Exception:
-                logger.error(f'update product by id:{product_id} in cart unsuccessful')
+                        messages.error(request, f'update product by id:{product_id} in cart unsuccessful')
         else:
             cart.clear()
 
         return redirect(reverse('cart:index'))
-

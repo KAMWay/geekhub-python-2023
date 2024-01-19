@@ -1,7 +1,9 @@
 from settings.base import *
 
 INSTALLED_APPS += [
-    'apps.product.apps.ProductConfig'
+    'apps.account.apps.AccountConfig',
+    'apps.cart.apps.CartConfig',
+    'apps.product.apps.ProductConfig',
 ]
 
 LOGGING = {
