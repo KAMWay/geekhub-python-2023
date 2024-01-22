@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 
 import requests
 
-from .models import Product
+from apps.product.models import Product
 
 logger = logging.getLogger('django')
 
@@ -41,7 +41,7 @@ class ScrapingTask:
         self.__ids = ids
 
     def run(self):
-        logger.info('Task start')
+        logger.info('Task scrapping items start')
         for _id in self.__ids:
             product = self.__scrap_by_id(_id)
             if product:
@@ -50,7 +50,7 @@ class ScrapingTask:
                     logger.info(f'Product by id {_id} save successful')
                 except Exception as e:
                     logger.error(f'Product by id {_id} save unsuccessful: {e}')
-        logger.info('Task done')
+        logger.info('Task scrapping items done')
 
     def __scrap_by_id(self, product_id: str) -> Product:
         logger.info(f'Start scrapping product by id: {product_id}')
@@ -66,24 +66,29 @@ class ScrapingTask:
             logger.info(f'Stop scrapping product by id: {product_id}')
 
     def __parse_product(self, product_dict: dict) -> Product:
-        url = product_dict.get('seoUrl')  # product_dict.get("partNum")
+        url = product_dict.get('seoUrl')
+
+        default_seller = product_dict.get('defaultSeller')
+        if default_seller:
+            default_seller = default_seller.get('sellerId')
+
         return Product(
             id=self.__parse_id(url),
 
-            brand_name=product_dict.get('brandName'),
-            name=product_dict.get('descriptionName'),
-            main_image_url=product_dict.get('mainImageUrl'),
-            description=product_dict.get('shortDescription'),
-            url=url,
+            brand_name=self.__to_str_value(product_dict.get('brandName')),
+            name=self.__to_str_value(product_dict.get('descriptionName')),
+            main_image_url=self.__to_str_value(product_dict.get('mainImageUrl')),
+            description=self.__to_str_value(product_dict.get('shortDescription')),
+            url=self.__to_str_value(url),
 
             regular_price=self.__to_float_value(product_dict.get('regularPrice')),
             sale_price=self.__to_float_value(product_dict.get('salePrice')),
 
-            default_seller_id=product_dict.get('defaultSeller').get('sellerId'),
+            default_seller_id=self.__to_str_value(default_seller),
             store_id=self.__to_int_value(product_dict.get('storeId')),
         )
 
-    def __parse_id(self, url: str):
+    def __parse_id(self, url: str) -> str:
         start_id = url.rfind('p-')
         start_id = (start_id + 2) if start_id >= 0 else 0
 
@@ -92,14 +97,17 @@ class ScrapingTask:
 
         return url[start_id:end_id]
 
-    def __to_float_value(self, value: str):
+    def __to_float_value(self, value: str) -> float:
         try:
             return float(value)
         except TypeError:
             return 0
 
-    def __to_int_value(self, value: str):
+    def __to_int_value(self, value: str) -> int:
         try:
             return int(value)
         except TypeError:
             return 0
+
+    def __to_str_value(self, value: str) -> str:
+        return str(value) if value else ""

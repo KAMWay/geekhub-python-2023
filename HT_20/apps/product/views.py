@@ -1,6 +1,6 @@
 import logging
 import subprocess
-from sys import stdout, stdin, stderr
+import sys
 
 from django.contrib import messages
 from django.shortcuts import redirect
@@ -8,7 +8,7 @@ from django.urls import reverse_lazy
 from django.views import generic
 
 from .forms import ProductForm
-from .models import Product, Category
+from .models import Product, Category, ScrapyTask
 from ..cart.models import Cart
 
 logger = logging.getLogger('django')
@@ -30,8 +30,8 @@ class ProductUploadView(generic.FormView):
             form = ProductForm(request.POST)
             if form.is_valid():
                 ids_str = form.cleaned_data['ids']
-                ids = set(item.strip() for item in ids_str.split(sep=','))
-                self.run_subprocess(ids)
+                task = ScrapyTask.objects.create(ids_str=ids_str)
+                self.run_subprocess(task.id)
                 messages.info(request, 'Products scraping start successfully')
             else:
                 messages.error(request, 'Form data unsuccessfully')
@@ -42,13 +42,18 @@ class ProductUploadView(generic.FormView):
         else:
             return redirect('product:upload')
 
-    def run_subprocess(self, ids: set):
+    def run_subprocess(self, task_id: int):
         try:
-            command = f'python manage.py shell --command="from apps.product.tasks import ScrapingTask; ScrapingTask({ids}).run()"'
-            process = subprocess.Popen(command, shell=True, stdin=stdin, stdout=stdout, stderr=stderr)
-            logger.info(f'subprocess id:{process.pid} run successful')
+            sys_execute = sys.executable
+            subprocess.Popen([
+                sys_execute,
+                'manage.py',
+                'scrape',
+                str(task_id)
+            ])
+            logger.info(f'scraping subprocess by id:{task_id} run successful')
         except Exception:
-            logger.error(f'subprocess run unsuccessful')
+            logger.error(f'scraping subprocess by id:{task_id} run unsuccessful')
 
 
 class ProductListView(generic.ListView):
@@ -130,8 +135,6 @@ class ProductUpdateView(generic.UpdateView):
         messages.info(self.request, 'Update success')
 
         return super().get_success_url()
-
-
 
     def post(self, request, *args, **kwargs):
         if request.user and not request.user.is_superuser:

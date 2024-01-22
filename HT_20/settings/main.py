@@ -4,6 +4,7 @@ INSTALLED_APPS += [
     'apps.account.apps.AccountConfig',
     'apps.cart.apps.CartConfig',
     'apps.product.apps.ProductConfig',
+    'apps.scraper',
 ]
 
 LOGGING = {
