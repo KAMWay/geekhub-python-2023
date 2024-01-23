@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from apps.product.models import ScrapyTask
 
-from scraper.models import ScrapingTask
+from apps.scraper.models import ScrapingTask
 
 
 class Command(BaseCommand):

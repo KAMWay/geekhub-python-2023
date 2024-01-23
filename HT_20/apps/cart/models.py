@@ -1,22 +1,19 @@
 from apps.product.models import Product
-from settings.base import env
+from main import CLIENT_DATA_KEY, CLIENT_CART_KEY
 
 
 # Create your models here.
 
 class Cart:
-    CLIENT_DATA_KEY = env('CLIENT_DATA_KEY')
-    CLIENT_CART_KEY = env('CLIENT_CART_KEY')
-
     def __init__(self, request):
         self.session = request.session
-        client_data = request.session.get(self.CLIENT_DATA_KEY)
+        client_data = request.session.get(CLIENT_DATA_KEY)
         if not client_data:
-            self.session[self.CLIENT_DATA_KEY] = client_data = {}
+            self.session[CLIENT_DATA_KEY] = client_data = {}
 
-        cart = client_data.get(self.CLIENT_CART_KEY)
+        cart = client_data.get(CLIENT_CART_KEY)
         if not cart:
-            client_data[self.CLIENT_CART_KEY] = cart = {}
+            client_data[CLIENT_CART_KEY] = cart = {}
 
         self.cart = cart
 
@@ -56,7 +53,7 @@ class Cart:
         self.session.modified = True
 
     def clear(self):
-        del self.session[self.CLIENT_DATA_KEY][self.CLIENT_CART_KEY]
+        del self.session[CLIENT_DATA_KEY][CLIENT_CART_KEY]
         self.session.modified = True
 
     def is_exist(self, product_id) -> bool:

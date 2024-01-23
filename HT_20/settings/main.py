@@ -29,7 +29,6 @@ LOGGING = {
 
 }
 
-
 STATICFILES_DIRS = [
     BASE_DIR / 'static'
 ]
@@ -39,3 +38,6 @@ TEMPLATES[0]['DIRS'].append('templates')
 LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'index'
 LOGIN_URL = 'login'
+
+CLIENT_DATA_KEY = 'session_key'
+CLIENT_CART_KEY = 'cart_key'
