@@ -1,0 +1,4 @@
+-r base.txt
+
+django-filter==23.5
+Markdown==3.5.2

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block base %}
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Price</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Total</th>
+            <th scope="col"></th>
+        </tr>
+        </thead>
+        {% if cart_items %}
+            <tbody>
+            {% for item in cart_items %}
+                <tr>
+                    <th scope="row">
+                        <a href="{% url 'product:detail' item.product.id %}"
+                           title="Detail info">{{ item.product.id }}</a>
+                    </th>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.product.sale_price }}</td>
+                    <td class="text-center fw-bold">
+                        {{ item.quantity }}
+                    </td>
+                    <td>{{ item.total }}</td>
+                    <td>
+                        <div class="input-group">
+                            <form method="POST">{% csrf_token %}
+                                <input type="hidden" name="product_id" value="{{ item.product.id }}">
+                                <input type="hidden" name="product_quantity" value="1">
+                                <button type="submit" title="plus" class="bi bi-bag-plus nav-link mx-1"></button>
+                            </form>
+                            <form method="POST">{% csrf_token %}
+                                <input type="hidden" name="product_id" value="{{ item.product.id }}">
+                                <input type="hidden" name="product_quantity" value="-1">
+                                <button type="submit" title="dash"
+                                        class="bi bi bi-bag-dash nav-link {% if item.quantity < 2 %} text-danger disabled {% endif %}">
+                                </button>
+                            </form>
+                            <form method="POST">{% csrf_token %}
+                                <input type="hidden" name="product_id" value="{{ item.product.id }}">
+                                <input type="hidden" name="product_quantity" value="0">
+                                <button type="submit" title="trash" class="nav-link bi bi-trash mx-1"></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="fw-bold">{{ cart_items.total }}</td>
+                <td>
+                    <div class="input-group">
+                        {% csrf_token %}
+                        <form method="POST">{% csrf_token %}
+                            <button type="submit" title="trash" class="nav-link bi bi-trash mx-1"></button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tfoot>
+        {% endif %}
+    </table>
+{% endblock %}

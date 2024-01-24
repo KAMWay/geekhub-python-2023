@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block base %}
+
+    <button id="aaa" class="btn btn-primary" type="button" data-bs-toggle="offcanvas"
+            data-bs-target="#offcanvasWithBothOptions"
+            aria-controls="offcanvasWithBothOptions">Filter
+    </button>
+
+    <div class="offcanvas offcanvas-start" data-bs-scroll="true" tabindex="-1" id="offcanvasWithBothOptions"
+         aria-labelledby="offcanvasWithBothOptionsLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel">Categories:</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            {% if categories %}
+                <form method="get">
+                    {% for category in categories %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="{{ category.id }}"
+                                   id="flexCheckDefault{{ category.id }}" name="select_categories"
+                                    {% if select_categories %}
+                                   {% if category.id in select_categories %}checked{% endif %}
+                                    {% endif %}
+                            >
+                            <label class="form-check-label" for="flexCheckDefault{{ category.id }}">
+                                {{ category.name }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                    <div class="row align-items-center my-4">
+                        <div class="d-flex align-items-center">
+                            <button class="btn bsb-btn-2xl btn-primary" type="submit">Apply</button>
+                        </div>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 py-5">
+        {% if products %}
+            {% for product in products %}
+                <div class="col d-flex align-items-start">
+                    <div class="card shadow-sm h-100">
+                        <div class="d-flex justify-content-between card-header fw-bold mb-0 fs-4 text-body-emphasis">
+                            <a href="{% url 'product:detail' product.id %}" title="detail">{{ product.id }}</a>
+                            {% if request.user.is_superuser %}
+                                <div class="d-flex fs-6">
+                                    <div>
+                                        <a class="bi bi-pencil-square"
+                                           href="{% url 'product:update' product.id %}" title="update"></a>
+                                    </div>
+                                    <div>
+                                        <button type="button" class="bg-body-tertiary bi bi-trash mx-1 border-0"
+                                                data-bs-toggle="modal" data-bs-target="#confirmModal"
+                                                data-bs-whatever="{% url 'product:delete' product.id %}">
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class=" card-body">
+                            <p class="h-75">{{ product.name }}</p>
+                            <p>price: <span class="fw-bold">${{ product.sale_price }}</span></p>
+                        </div>
+                        <div class="card-footer border-white bg-white">
+                            {% if request.user.is_authenticated %}
+                                <form method="post">{% csrf_token %}
+                                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                                    <input type="hidden" name="product_quantity" value="1">
+                                    {% if product.id in request.session.session_key.cart_key %}
+                                        <button type="submit" class="btn btn-warning">Remove from cart</button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-primary">Add to cart</button>
+                                    {% endif %}
+                                </form>
+                            {% endif %}
+                            <p>
+                                <span class="fs-6 fw-light fst-italic">
+                                {% if product.category %}
+                                    {{ product.category.name }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="confirmModalLabel">Confirm delete product</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="confirmModalForm" method="post" action="">{% csrf_token %}
+                    <div class="modal-body">
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-danger">Confirm</button>
+                        </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const exampleModal = document.getElementById('confirmModal')
+        if (exampleModal) {
+            exampleModal.addEventListener('show.bs.modal', event => {
+                const button = event.relatedTarget
+                const recipient = button.getAttribute('data-bs-whatever')
+                $('#confirmModalForm').attr('action', recipient)
+            })
+        }
+    </script>
+{% endblock %}
