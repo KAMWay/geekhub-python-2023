@@ -43,19 +43,19 @@
         {% if products %}
             {% for product in products %}
                 <div class="col d-flex align-items-start">
-                    <div class="card shadow-sm h-100">
+                    <div class="card shadow-sm h-100 w-100">
                         <div class="d-flex justify-content-between card-header fw-bold mb-0 fs-4 text-body-emphasis">
-                            <a href="{% url 'product:detail' product.id %}" title="detail">{{ product.id }}</a>
+                            <a href="{% url 'products:detail' product.id %}" title="detail">{{ product.id }}</a>
                             {% if request.user.is_superuser %}
                                 <div class="d-flex fs-6">
                                     <div>
                                         <a class="bi bi-pencil-square"
-                                           href="{% url 'product:update' product.id %}" title="update"></a>
+                                           href="{% url 'products:update' product.id %}" title="update"></a>
                                     </div>
                                     <div>
                                         <button type="button" class="bg-body-tertiary bi bi-trash mx-1 border-0"
                                                 data-bs-toggle="modal" data-bs-target="#confirmModal"
-                                                data-bs-whatever="{% url 'product:delete' product.id %}">
+                                                data-bs-whatever="{% url 'products:delete' product.id %}">
                                         </button>
                                     </div>
                                 </div>

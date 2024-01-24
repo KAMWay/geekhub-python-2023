@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from apps.product.models import ScrapyTask
+from apps.products.models import ScrapyTask
 
 from apps.scraper.models import ScrapingTask
 

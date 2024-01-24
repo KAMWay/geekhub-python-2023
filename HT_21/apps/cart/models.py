@@ -1,5 +1,5 @@
-from apps.product.models import Product
-from main import CLIENT_DATA_KEY, CLIENT_CART_KEY
+from apps.products.models import Product
+from settings.main import CLIENT_DATA_KEY, CLIENT_CART_KEY
 
 
 # Create your models here.

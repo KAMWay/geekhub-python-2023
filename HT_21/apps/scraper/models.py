@@ -6,7 +6,8 @@ from urllib.parse import urljoin
 
 import requests
 
-from apps.product.models import Product
+from apps.products.models import Product
+from apps.products.models import Brand
 
 logger = logging.getLogger('django')
 
@@ -72,10 +73,12 @@ class ScrapingTask:
         if default_seller:
             default_seller = default_seller.get('sellerId')
 
+        brand = self.__get_brand_by_name(self.__to_str_value(product_dict.get('brandName')))
+
         return Product(
             id=self.__parse_id(url),
 
-            brand_name=self.__to_str_value(product_dict.get('brandName')),
+            brand=brand,
             name=self.__to_str_value(product_dict.get('descriptionName')),
             main_image_url=self.__to_str_value(product_dict.get('mainImageUrl')),
             description=self.__to_str_value(product_dict.get('shortDescription')),
@@ -87,6 +90,13 @@ class ScrapingTask:
             default_seller_id=self.__to_str_value(default_seller),
             store_id=self.__to_int_value(product_dict.get('storeId')),
         )
+
+    def __get_brand_by_name(self, name: str) -> Brand:
+        brand = Brand.objects.filter(name=name).first()
+        if brand:
+            return brand
+
+        return Brand.objects.create(name=name)
 
     def __parse_id(self, url: str) -> str:
         start_id = url.rfind('p-')

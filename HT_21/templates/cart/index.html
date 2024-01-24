@@ -17,7 +17,7 @@
             {% for item in cart_items %}
                 <tr>
                     <th scope="row">
-                        <a href="{% url 'product:detail' item.product.id %}"
+                        <a href="{% url 'products:detail' item.product.id %}"
                            title="Detail info">{{ item.product.id }}</a>
                     </th>
                     <td>{{ item.product.name }}</td>

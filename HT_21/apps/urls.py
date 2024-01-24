@@ -17,21 +17,22 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework import routers
 
-from .account import views
-from .product.views import ProductListView
+from .products.views.products import ProductListView
 
-router = routers.DefaultRouter()
-router.register(r'users', views.UserViewSet)
-router.register(r'groups', views.GroupViewSet)
+api = [
+    path("accounts/", include("apps.accounts.api_urls")),
+    # path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+]
 
 urlpatterns = [
     path("", ProductListView.as_view(), name="index"),
 
-    path("account/", include("apps.account.urls")),
+    path("accounts/", include("apps.accounts.urls")),
     path("cart/", include("apps.cart.urls")),
-    path("product/", include("apps.product.urls")),
+    path("products/", include("apps.products.urls")),
 
     path('admin/', admin.site.urls),
+
+    path("api/", include(api), name="api_users"),
 ]

@@ -26,8 +26,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <form action="{% url 'account:login' %}" method="post"> {% csrf_token %}
-                                {#                            <form action="{% url 'account:login' %}" method="post"> {% csrf_token %}#}
+                            <form action="{% url 'accounts:login' %}" method="post"> {% csrf_token %}
                                 <div class="row g-3">
                                     <div class="col-2">
                                         <label for="id_username" class="col-form-label">Username</label>

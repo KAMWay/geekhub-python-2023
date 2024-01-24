@@ -1,14 +1,15 @@
 from settings.base import *
 
+
 CLIENT_DATA_KEY = 'session_key'
 CLIENT_CART_KEY = 'cart_key'
 
 INSTALLED_APPS += [
     'rest_framework',
 
-    'apps.account.apps.AccountConfig',
+    'apps.accounts.apps.AccountConfig',
     'apps.cart.apps.CartConfig',
-    'apps.product.apps.ProductConfig',
+    'apps.products.apps.ProductConfig',
     'apps.scraper',
 ]
 

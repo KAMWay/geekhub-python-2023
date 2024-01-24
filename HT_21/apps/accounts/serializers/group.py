@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name="account:user-detail")
+    url = serializers.HyperlinkedIdentityField(view_name="accounts:user-detail")
 
     class Meta:
         model = Group
