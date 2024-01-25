@@ -18,10 +18,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from .products.views.products import ProductListView
+from .products.views.list import ProductListView
 
 api = [
     path("accounts/", include("apps.accounts.api_urls")),
+    path("products/", include("apps.products.api_urls")),
     # path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]
 
@@ -34,5 +35,5 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
 
-    path("api/", include(api), name="api_users"),
+    path("api/", include(api), name="api"),
 ]

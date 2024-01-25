@@ -1,19 +1,13 @@
-from django.contrib.auth import views as auth_views
 from django.urls import path, include
 from rest_framework import routers
 
-from . import views
+from . import api_views
 
 router = routers.DefaultRouter()
-router.register(prefix=r'users', viewset=views.UserViewSet, basename='users')
-router.register(r'groups', views.GroupViewSet, 'groups')
+router.register(prefix=r'users', viewset=api_views.UserViewSet)
+router.register(r'groups', api_views.GroupViewSet)
 
-api = [
-    path("", include(router.urls)),
-    # path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
-]
-
-app_name = "api_account"
+app_name = "api_accounts"
 urlpatterns = [
-    path("", include(api)),
+    path("", include(router.urls)),
 ]

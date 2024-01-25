@@ -10,8 +10,8 @@ class Product(models.Model):
     description = models.TextField(_('description'), )
     url = models.CharField(_('url'), max_length=255)
 
-    regular_price = models.DecimalField(_('regular_price'), max_digits=10, decimal_places=2)
-    sale_price = models.DecimalField(_('sale_price'), max_digits=10, decimal_places=2)
+    regular_price = models.DecimalField(_('regular price'), max_digits=10, decimal_places=2)
+    sale_price = models.DecimalField(_('sale price'), max_digits=10, decimal_places=2)
 
     default_seller_id = models.CharField(_('default seller id'), max_length=12)
     store_id = models.IntegerField(_('store id'), )
