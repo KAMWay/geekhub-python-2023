@@ -70,7 +70,9 @@
                                 <form method="post">{% csrf_token %}
                                     <input type="hidden" name="product_id" value="{{ product.id }}">
                                     <input type="hidden" name="product_quantity" value="1">
-                                    {% if product.id in request.session.session_key.cart_key %}
+
+                                    {% load inside %}
+                                    {% if product.id|inside:request.session.session_key.cart_key %}
                                         <button type="submit" class="btn btn-warning">Remove from cart</button>
                                     {% else %}
                                         <button type="submit" class="btn btn-primary">Add to cart</button>

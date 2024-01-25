@@ -7,6 +7,8 @@ CLIENT_CART_KEY = 'cart_key'
 INSTALLED_APPS += [
     'rest_framework',
 
+    'apps.cart.templatetags.inside',
+
     'apps.accounts.apps.AccountConfig',
     'apps.cart.apps.CartConfig',
     'apps.products.apps.ProductConfig',
