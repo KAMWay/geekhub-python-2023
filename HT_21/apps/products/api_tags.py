@@ -1,0 +1,5 @@
+BRAND_TAG = 'Product Brand'
+CATEGORY_TAG = 'Product Category'
+PRODUCT_TAG = 'Product'
+SCRAPY_TASK_TAG = 'Product Scrapy Task'
+TAG_TAG = 'Product Tag'

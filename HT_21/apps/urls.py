@@ -17,13 +17,14 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 from .products.views.list import ProductListView
 
-api = [
+api_urls = [
     path("accounts/", include("apps.accounts.api_urls")),
     path("products/", include("apps.products.api_urls")),
-    # path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    path("cart/", include("apps.cart.api_urls")),
 ]
 
 urlpatterns = [
@@ -33,7 +34,11 @@ urlpatterns = [
     path("cart/", include("apps.cart.urls")),
     path("products/", include("apps.products.urls")),
 
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls, name="admin"),
 
-    path("api/", include(api), name="api"),
+    path("api/", include(api_urls)),
+
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),
+    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]

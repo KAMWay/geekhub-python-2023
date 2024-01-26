@@ -6,13 +6,13 @@ from settings.main import CLIENT_DATA_KEY, CLIENT_CART_KEY
 
 class Cart:
     def __init__(self, request):
-        # self.session = request.session
+        self.session = request.session
         client_data = request.session.get(CLIENT_DATA_KEY)
         if not client_data:
             self.session[CLIENT_DATA_KEY] = client_data = {}
 
         cart = client_data.get(CLIENT_CART_KEY)
-        if not cart:
+        if not cart or not self.__is_valid(cart):
             client_data[CLIENT_CART_KEY] = cart = []
 
         self.cart = cart
@@ -29,7 +29,7 @@ class Cart:
         for product in products:
             item = {
                 'product': product,
-                'quantity': self.__select_product(product.id)['quantity']
+                'quantity': self.select_product(product.id)['quantity']
             }
             cart.append(item)
 
@@ -41,11 +41,21 @@ class Cart:
 
         self.total = total
 
-    def update(self, product_id, product_quantity: int):
-        for item in self.cart:
-            print()
+    def __is_valid(self, cart):
+        if cart is None:
+            return False
 
-        item = self.__select_product(product_id)
+        for item in cart:
+            if not isinstance(item, dict):
+                return False
+
+            if not item.get('quantity', None) or not item.get('product_id', None):
+                return False
+
+        return True
+
+    def update(self, product_id, product_quantity: int):
+        item = self.select_product(product_id)
         if item:
             item['quantity'] = product_quantity
         else:
@@ -57,7 +67,7 @@ class Cart:
 
         self.session.modified = True
 
-    def __select_product(self, product_id: str) -> dict:
+    def select_product(self, product_id: str) -> dict:
         for items in self.cart:
             if items['product_id'] == product_id:
                 return items
@@ -75,7 +85,7 @@ class Cart:
         self.session.modified = True
 
     def is_exist(self, product_id: str) -> bool:
-        return True if self.__select_product(product_id) else False
+        return True if self.select_product(product_id) else False
 
     def product_quantity(self, product_id) -> int:
-        return self.__select_product(product_id)['quantity']
+        return self.select_product(product_id)['quantity']

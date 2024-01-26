@@ -27,21 +27,14 @@ class ProductListView(ListView):
         if product_id:
             product_quantity = int(request.POST.get('product_quantity'))
             cart = Cart(request)
-            self.__product_to_cart(product_id, product_quantity, cart)
 
-        return redirect('index')
-
-    def __product_to_cart(self, product_id: str, product_quantity: int, cart: Cart):
-        if cart.is_exist(product_id):
-            cart.delete(product_id)
-        else:
-            try:
+            if cart.is_exist(product_id):
+                cart.delete(product_id)
+            else:
                 if product_quantity > 0:
                     cart.update(product_id, product_quantity)
-                else:
-                    raise Exception
-            except Exception:
-                logger.error(f'added products by id:{product_id} to cart unsuccessful')
+
+        return redirect('index')
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(object_list=object_list, **kwargs)

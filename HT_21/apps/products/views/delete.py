@@ -26,9 +26,3 @@ class ProductDeleteView(generic.DeleteView):
             redirect('products:update')
 
         return super().post(request, *args, **kwargs)
-
-
-class ProductDetailView(generic.DetailView):
-    model = Product
-    template_name = 'products/detail.html'
-    context_object_name = 'products'
