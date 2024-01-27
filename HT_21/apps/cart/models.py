@@ -11,17 +11,17 @@ class Cart:
         if not client_data:
             self.session[CLIENT_DATA_KEY] = client_data = {}
 
-        cart = client_data.get(CLIENT_CART_KEY)
-        if not cart or not self.__is_valid(cart):
-            client_data[CLIENT_CART_KEY] = cart = []
+        items = client_data.get(CLIENT_CART_KEY)
+        if not items or not self.__is_valid(items):
+            client_data[CLIENT_CART_KEY] = items = []
 
-        self.cart = cart
+        self.items = items
 
     def __len__(self):
-        return sum(int(item['quantity']) for item in self.cart)
+        return sum(int(item['quantity']) for item in self.items)
 
     def __iter__(self):
-        all_product_ids = [item['product_id'] for item in self.cart]
+        all_product_ids = [item['product_id'] for item in self.items]
         print(all_product_ids)
         products = Product.objects.filter(id__in=all_product_ids)
 
@@ -63,19 +63,19 @@ class Cart:
                 'product_id': product_id,
                 'quantity': product_quantity
             }
-            self.cart.append(item)
+            self.items.append(item)
 
         self.session.modified = True
 
     def select_product(self, product_id: str) -> dict:
-        for items in self.cart:
+        for items in self.items:
             if items['product_id'] == product_id:
                 return items
 
     def delete(self, product_id):
-        for i in range(len(self.cart)):
-            if self.cart[i]['product_id'] == product_id:
-                del self.cart[i]
+        for i in range(len(self.items)):
+            if self.items[i]['product_id'] == product_id:
+                del self.items[i]
                 break
 
         self.session.modified = True

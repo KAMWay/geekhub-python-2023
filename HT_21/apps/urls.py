@@ -19,12 +19,12 @@ from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
-from .products.views.list import ProductListView
+from apps.products.views.list import ProductListView
 
 api_urls = [
     path("accounts/", include("apps.accounts.api_urls")),
     path("products/", include("apps.products.api_urls")),
-    path("cart/", include("apps.cart.api_urls")),
+    path("cart/", include("apps.cart.api.urls")),
 ]
 
 urlpatterns = [

@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.cart.api_tags import CART_TAG
+from apps.cart.api.tags import CART_TAG
 from apps.cart.models import Cart
 from apps.cart.serializers import CartSerializer
 
@@ -18,7 +18,7 @@ class CartApiView(APIView):
             OpenApiExample(
                 'Example Value',
                 value={
-                    "cart": "[{'product_id': 'string', 'quantity': 1}]"
+                    "items": "[{'product_id': 'string', 'quantity': 1}]"
                 },
             ),
         ],
@@ -45,7 +45,7 @@ class CartApiView(APIView):
         cart = Cart(request)
 
         serializer = CartSerializer(cart)
-        validate_data = serializer.validate_data(request)
+        validate_data = serializer.validate_data(request.data)
         if cart.select_product(validate_data['product_id']) is not None:
             validate_data['quantity'] = 0
 
