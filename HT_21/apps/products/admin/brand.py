@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from products.models import Brand
+from apps.products.models import Brand
 
 
 @admin.register(Brand)

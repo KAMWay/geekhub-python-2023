@@ -1,6 +1,6 @@
 from django.urls import path
 
-from cart.api_views import CartApiView
+from apps.cart.api_views import CartApiView
 
 app_name = 'api_cart'
 urlpatterns = [

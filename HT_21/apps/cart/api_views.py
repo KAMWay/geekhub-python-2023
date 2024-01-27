@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.cart.api_tags import CART_TAG
-from cart.models import Cart
-from cart.serializers import CartSerializer
+from apps.cart.models import Cart
+from apps.cart.serializers import CartSerializer
 
 
 @extend_schema(

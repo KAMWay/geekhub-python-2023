@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from products.models import ScrapyTask
+from apps.products.models import ScrapyTask
 
 
 class ScrapyTaskSerializer(serializers.ModelSerializer):

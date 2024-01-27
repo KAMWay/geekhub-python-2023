@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from products.models import ScrapyTask
+from apps.products.models import ScrapyTask
 
 
 @admin.register(ScrapyTask)
