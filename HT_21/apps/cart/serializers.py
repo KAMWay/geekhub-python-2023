@@ -6,7 +6,7 @@ from apps.products.models import Product
 
 
 class CartSerializer(serializers.Serializer):
-    items = serializers.CharField(read_only=True)
+    items = serializers.ListSerializer(child=serializers.DictField())
 
     # session = serializers.CharField(max_length=255)
 
