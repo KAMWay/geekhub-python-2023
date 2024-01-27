@@ -4,11 +4,11 @@ from rest_framework.viewsets import ModelViewSet
 from apps.products.models import Tag
 from apps.products.serializers import TagSerializer
 
-from apps.products.api_tags import SCRAPY_TASK_TAG
+from apps.products.api.tags import TAG_TAG
 
 
 @extend_schema(
-    tags=[SCRAPY_TASK_TAG],
+    tags=[TAG_TAG],
 )
 class TagViewSet(ModelViewSet):
     queryset = Tag.objects.all().order_by('id')

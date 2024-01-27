@@ -4,7 +4,7 @@ from rest_framework.viewsets import ModelViewSet
 from apps.products.models import Category
 from apps.products.serializers import CategorySerializer
 
-from apps.products.api_tags import CATEGORY_TAG
+from apps.products.api.tags import CATEGORY_TAG
 
 
 @extend_schema(

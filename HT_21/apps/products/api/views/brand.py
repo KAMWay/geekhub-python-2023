@@ -4,7 +4,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.products.models import Brand
 from apps.products.serializers import BrandSerializer
-from apps.products.api_tags import BRAND_TAG
+from apps.products.api.tags import BRAND_TAG
 
 
 @extend_schema(

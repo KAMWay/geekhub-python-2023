@@ -22,7 +22,7 @@ class CartView(generic.ListView):
             return super().get(request, *args, **kwargs)
         else:
             messages.error(request, 'Please login to continue.')
-            return redirect('account:login')
+            return redirect('accounts:login')
 
     def get_queryset(self):
         return Cart(self.request)

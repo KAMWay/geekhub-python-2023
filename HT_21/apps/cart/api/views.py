@@ -54,12 +54,9 @@ class CartApiView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
-        tags=[CART_TAG],
         examples=[
             OpenApiExample(
                 'Example Value',
-                # summary='short summary',
-                # description='longer description',
                 value={
                     'product_id': 'string',
                     'quantity': 1
@@ -72,7 +69,7 @@ class CartApiView(APIView):
         cart = Cart(request)
         serializer = CartSerializer(cart)
 
-        validate_data = serializer.validate_data(request)
+        validate_data = serializer.validate_data(request.data)
         serializer.update(cart, validate_data)
 
         return Response(status=status.HTTP_204_NO_CONTENT)

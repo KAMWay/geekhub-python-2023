@@ -4,7 +4,7 @@ from rest_framework.viewsets import ModelViewSet
 from apps.products.models import ScrapyTask
 from apps.products.serializers import ScrapyTaskSerializer
 
-from apps.products.api_tags import SCRAPY_TASK_TAG
+from apps.products.api.tags import SCRAPY_TASK_TAG
 
 
 @extend_schema(
