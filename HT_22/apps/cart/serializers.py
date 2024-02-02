@@ -1,13 +1,34 @@
 from django.utils.translation import gettext_lazy as _
+from drf_spectacular.utils import extend_schema_serializer, OpenApiExample
 from rest_framework import serializers
 
 from apps.cart.models import Cart
 from apps.products.models import Product
 
 
+@extend_schema_serializer(
+    examples=[
+        OpenApiExample(
+            'Request Value',
+            value={
+                'product_id': 'string',
+                'quantity': 1
+            },
+            request_only=True,
+            response_only=False,
+        ),
+        OpenApiExample(
+            'Response Value',
+            value={
+                "items": "[{'product_id': 'string', 'quantity': 1}]"
+            },
+            request_only=False,
+            response_only=True,
+        ),
+    ]
+)
 class CartSerializer(serializers.Serializer):
     items = serializers.ListSerializer(child=serializers.DictField())
-
     # session = serializers.CharField(max_length=255)
 
     class Meta:

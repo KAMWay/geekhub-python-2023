@@ -7,7 +7,7 @@ $(document).ready(function () {
                 const data = {
                     'product_id': target.dataset.product_id,
                     'quantity': 1,
-                }
+                };
                 load(
                     window.cartApiUrl,
                     'POST',
@@ -24,12 +24,12 @@ $(document).ready(function () {
                         }
                         $navCarElement.text(result.items.length);
                     },
-                    () => console.log('before')
-                    // target.enable(false);
-                    ,
-                    () => console.log('complete')
-                    // target.enable(true);
-                    ,
+                    () => {
+                        target.disabled = true;
+                    },
+                    () => {
+                        target.disabled = false;
+                    },
                 )
             }
         );
@@ -86,14 +86,11 @@ $(document).ready(function () {
                 const $priceCell = $(this).find('td:eq(1)');
                 const $quantityCell = $(this).find('td:eq(2)');
                 const $totalCell = $(this).find('td:eq(3)');
-                const $eventCell = $(this).find('td:eq(4)');
 
                 const total = parseFloat($.trim($priceCell.text())) * itemDict[0].quantity;
                 $quantityCell.text(itemDict[0].quantity);
                 $totalCell.text(round(total, 2))
                 cartTotal += total;
-
-                console.log('ppppp')
             }
         });
 
@@ -116,8 +113,8 @@ $(document).ready(function () {
         $('table tbody tr').each(function () {
             const itemDict = getCartItemDictByProductId(productId);
             if (itemDict.length > 0) {
-                const $eventCell = $(this).find('td:eq(4)');
-                $eventCell.attr('disabled', isEnable);
+                const eventCell = $(this).find('td:eq(4)');
+                eventCell.attr('disabled', isEnable);
             }
         });
     }

@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema, OpenApiExample
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -30,40 +30,38 @@ class CartApiView(APIView):
         return Response(serializer.data)
 
     @extend_schema(
-        examples=[
-            OpenApiExample(
-                'Example Value',
-                value={
-                    'product_id': 'string',
-                    'quantity': 1
-                },
-            ),
-        ],
         request=CartSerializer,
+        responses={
+            status.HTTP_201_CREATED: OpenApiResponse(
+                description='Product by ID has been added to the cart',
+                response=CartSerializer,
+            ),
+            status.HTTP_200_OK: OpenApiResponse(
+                description='Product by id was be exist and removed from cart',
+                response=CartSerializer,
+            ),
+        },
     )
     def post(self, request):
         cart = Cart(request)
 
         serializer = CartSerializer(cart)
         validate_data = serializer.validate_data(request.data)
-        if cart.select_product(validate_data['product_id']) is not None:
+
+        is_exist = cart.select_product(validate_data['product_id']) is not None
+        if is_exist:
             validate_data['quantity'] = 0
 
         serializer.update(cart, validate_data)
 
-        return Response(serializer.data)
+        if is_exist:
+            return Response(status=status.HTTP_200_OK, data=serializer.data)
+        else:
+            return Response(status=status.HTTP_201_CREATED, data=serializer.data)
 
     @extend_schema(
-        examples=[
-            OpenApiExample(
-                'Example Value',
-                value={
-                    'product_id': 'string',
-                    'quantity': 1
-                },
-            ),
-        ],
         request=CartSerializer,
+        responses=CartSerializer,
     )
     def put(self, request):
         cart = Cart(request)
