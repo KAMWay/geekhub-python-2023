@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.products.models import Product, Brand
+from apps.products.models import Product
 from .category import CategorySerializer
 from .tag import TagSerializer
 
