@@ -1,0 +1,26 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home task 23</title>
+    <link href="{% static 'bootstrap/v5.3/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'bootstrap/v5.3/font/bootstrap-icons.min.css' %}" rel="stylesheet">
+    <script type="text/javascript" src="{% static 'jquery/3.7.1/jquery.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'bootstrap/v5.3/js/bootstrap.bundle.min.js' %}"></script>
+</head>
+<body>
+<div class="container-fluid sticky-top mb-2">
+    {% include "navigation.html" %}
+</div>
+
+<div class="container-fluid" id="base">
+    {#    {% if message %}<p><strong>{{ message }}</strong></p>{% endif %}#}
+    {% include "messages.html" %}
+    {% block base %} {% endblock %}
+
+</div>
+{% block extra_scripts %} {% endblock %}
+</body>
+</html>
