@@ -1,20 +1,19 @@
 import os
+from datetime import timedelta
 
 from celery import Celery
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings.main')
 
-app = Celery('apps',
-             # include=['apps.tasks', ]
-             )
+celery_app = Celery('apps')
 
-app.config_from_object('django.conf:settings', namespace='CELERY')
+celery_app.config_from_object('django.conf:settings', namespace='CELERY')
 
-app.autodiscover_tasks()
+celery_app.autodiscover_tasks()
 
-# app.conf.beat_schedule = {
-#     "every_3_seconds": {
-#         "task": "every_5_second",
-#         "schedule": crontab(second="3")
-#     }
-# }
+celery_app.conf.beat_schedule = {
+    "update_every_5_seconds": {
+        "task": "every_5_seconds",
+        "schedule": timedelta(seconds=5),
+    }
+}

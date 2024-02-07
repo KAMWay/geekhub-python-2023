@@ -1,5 +1,7 @@
 from settings.base import *
 
+from apps.celery import celery_app as apps
+
 CLIENT_DATA_KEY = 'session_key'
 CLIENT_CART_KEY = 'cart_key'
 
@@ -16,28 +18,24 @@ INSTALLED_APPS += [
     'apps.cart.apps.CartConfig',
     'apps.products.apps.ProductConfig',
     'apps.scraper',
-    # 'apps.products.tasks',
 
     # project tags
     'apps.cart.templatetags.inside',
 
     # celery
     'django_celery_results',
-    # 'apps.celery',
 ]
 
 # Celery
-# celery_app = 'apps.celery'
-
 CELERY_TIMEZONE = "Europe/Kiev "
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', '')
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
 CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'django-db')
-CELERY_CACHE_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'django-db')
+# CELERY_CACHE_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'django-db')
 
 LOGGING = {
     "version": 1,
