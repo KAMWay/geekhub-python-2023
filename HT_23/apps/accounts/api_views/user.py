@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from drf_spectacular.utils import extend_schema
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
+from rest_framework.permissions import IsAdminUser
 
 from apps.accounts.serializers import UserSerializer
 
@@ -16,4 +17,4 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminUser]
