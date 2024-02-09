@@ -7,7 +7,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.products.api.permissions import DefaultPermission
 from apps.products.api.tags import PRODUCT_TAG
-from apps.products.models import Product, ScrapyTask
+from apps.products.models import Product
 from apps.products.serializers import ProductSerializer
 from apps.tasks import scraping_items
 
@@ -48,10 +48,9 @@ class ProductViewSet(ModelViewSet):
             return super().create(request, *args, **kwargs)
         try:
             ids_str = ''.join(ch for ch in str(dict(request.data).get('id')) if ch not in '"\'[]')
-            scrapy_task = ScrapyTask.objects.create(ids_str=ids_str)
-            scraping_items.delay(scrapy_task_id=scrapy_task.id)
-            logger.info(f'scraping process by id:{scrapy_task.id} run successful')
+            ids = [item.strip() for item in ids_str.split(',')]
+            scraping_items.delay(ids=ids)
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception:
-            logger.error(f'scraping process by id:{scrapy_task.id} run unsuccessful')
+            logger.error(f"scraping process run unsuccessful")
             return Response(status=status.HTTP_400_BAD_REQUEST)

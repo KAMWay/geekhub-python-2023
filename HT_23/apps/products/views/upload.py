@@ -5,7 +5,6 @@ from django.shortcuts import redirect
 from django.views.generic import FormView
 
 from apps.products.forms import ProductForm
-from apps.products.models import ScrapyTask
 from apps.tasks import scraping_items
 
 logger = logging.getLogger('django')
@@ -27,8 +26,8 @@ class ProductUploadView(FormView):
             form = ProductForm(request.POST)
             if form.is_valid():
                 ids_str = form.cleaned_data['ids']
-                scrapy_task = ScrapyTask.objects.create(ids_str=ids_str)
-                scraping_items.delay(scrapy_task_id=scrapy_task.id)
+                ids = ids_str.split(',')
+                scraping_items.delay(ids=ids)
                 messages.info(request, 'Products send to scraping successfully')
             else:
                 messages.error(request, 'Form data unsuccessfully')
