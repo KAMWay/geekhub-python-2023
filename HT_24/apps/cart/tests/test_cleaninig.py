@@ -13,11 +13,6 @@ class AddItemTestCase(APITestCase):
         self.client.force_authenticate(user=UserFactory())
 
     def test_cleaning_cart_success(self):
-        response = self.client.delete(
-            path=reverse('api_cart:cart'),
-        )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, msg=response.content)
-
         self.client.put(
             path=reverse('api_cart:cart'),
             data={
@@ -42,4 +37,11 @@ class AddItemTestCase(APITestCase):
         response = self.client.delete(
             path=reverse('api_cart:cart'),
         )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, msg=response.content)
+
+        self.assertEqual(status.HTTP_204_NO_CONTENT, response.status_code, msg=response.content)
+        response = self.client.get(
+            path=reverse('api_cart:cart'),
+        )
+        self.assertEqual(status.HTTP_200_OK, response.status_code, msg=response.content)
+        expected_data = {'items': []}
+        self.assertDictEqual(expected_data, response.json(), msg=response.content)

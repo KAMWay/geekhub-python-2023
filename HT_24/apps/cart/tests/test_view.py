@@ -9,62 +9,60 @@ class AddItemTestCase(APITestCase):
     client: APIClient()
     maxDiff = None
 
-    def setUp(self):
+    def test_view_authenticated_user_success(self):
         self.client.force_authenticate(user=UserFactory())
 
-    def test_update_exist_product_success(self):
-        product = ProductFactory()
-        response = self.client.put(
+        response = self.client.get(
             path=reverse('api_cart:cart'),
-            data={
-                'quantity': 1,
-                'product_id': product.id
-            }
         )
         self.assertEqual(status.HTTP_200_OK, response.status_code, msg=response.content)
-        response = self.client.put(
-            path=reverse('api_cart:cart'),
-            data={
-                'quantity': 20,
-                'product_id': product.id
-            }
-        )
-        self.assertEqual(status.HTTP_200_OK, response.status_code, msg=response.content)
-        expected_data = {
-            'items': [
-                {'product_id': product.id, 'quantity': 20},
-            ]
-        }
+        expected_data = {'items': []}
         self.assertDictEqual(expected_data, response.json(), msg=response.content)
 
-    def test_update_exist_products_success(self):
         product1 = ProductFactory()
         product2 = ProductFactory()
-        self.client.put(
+        product3 = ProductFactory()
+        self.client.post(
             path=reverse('api_cart:cart'),
             data={
                 'quantity': 1,
                 'product_id': product1.id
             }
         )
-        self.client.put(
+        self.client.post(
             path=reverse('api_cart:cart'),
             data={
-                'quantity': 2,
+                'quantity': 1,
                 'product_id': product2.id
             }
         )
-        response = self.client.put(
+        self.client.post(
             path=reverse('api_cart:cart'),
             data={
-                'quantity': 3,
-                'product_id': product1.id
+                'quantity': 1,
+                'product_id': product3.id
             }
         )
+        response = self.client.get(
+            path=reverse('api_cart:cart'),
+        )
+        self.assertEqual(status.HTTP_200_OK, response.status_code, msg=response.content)
         expected_data = {
             'items': [
-                {'product_id': product1.id, 'quantity': 3},
-                {'product_id': product2.id, 'quantity': 2},
+                {'product_id': product1.id, 'quantity': 1},
+                {'product_id': product2.id, 'quantity': 1},
+                {'product_id': product3.id, 'quantity': 1},
             ]
         }
         self.assertDictEqual(expected_data, response.json(), msg=response.content)
+
+    def test_view_not_authenticated_user_failed(self):
+        response = self.client.get(
+            path=reverse('api_cart:cart'),
+        )
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code, msg=response.content)
+        self.assertDictEqual(
+            response.json(),
+            {"detail": "Authentication credentials were not provided."},
+            msg=response.content
+        )
