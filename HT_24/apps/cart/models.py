@@ -1,8 +1,9 @@
 from apps.products.models import Product
-from settings.main import CLIENT_DATA_KEY, CLIENT_CART_KEY
-
 
 # Create your models here.
+CLIENT_DATA_KEY = 'session_key'
+CLIENT_CART_KEY = 'cart_key'
+
 
 class Cart:
     def __init__(self, request):
