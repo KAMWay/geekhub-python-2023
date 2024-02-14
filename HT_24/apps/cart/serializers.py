@@ -54,7 +54,7 @@ class CartSerializer(serializers.Serializer):
             product = Product.objects.get(id=data['product_id'])
         except Exception:
             raise serializers.ValidationError(
-                _(''),
+                _('Invalid input cart product data'),
                 code='invalid_input_data'
             )
 

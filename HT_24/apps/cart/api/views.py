@@ -71,7 +71,7 @@ class CartApiView(APIView):
         validate_data = serializer.validate_data(request.data)
         serializer.update(cart, validate_data)
 
-        return Response(serializer.data)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def delete(self, request):
         cart = Cart(request)
