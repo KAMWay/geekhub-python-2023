@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block base %}
+    {% if product %}
+        <div class="my-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div class="col-2">
+                            <h5 class="card-subtitle mb-2" title="id">
+                                <span class="text-secondary text-opacity-50 text-end">Product:</span>
+                                {{ product.id }}
+                            </h5>
+                        </div>
+                    </div>
+                    <table class="table">
+                        <tbody>
+                        <tr>
+                            <td class="text-secondary text-opacity-50 text-end">brand name:</td>
+                            <td>{{ product.brand.name }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary text-opacity-50 text-end">product name:</td>
+                            <th scope="row">{{ product.name }}</th>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary text-opacity-50 text-end">main image url:</td>
+                            <td><a href="{{ product.main_image_url }}">{{ product.main_image_url }}</a></td>
+                        </tr>
+
+                        <tr>
+                            <td class="text-secondary text-opacity-50 text-end">product url:</td>
+                            <td>{{ product.url }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary text-opacity-50 text-end">regular price:</td>
+                            <th scope="row">{{ product.regular_price }}</th>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary text-opacity-50 text-end">sale rice:</td>
+                            <th scope="row">{{ product.sale_price }}</th>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary text-opacity-50 text-end">default seller:</td>
+                            <td>{{ product.default_seller_id }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary text-opacity-50 text-end">store id:</td>
+                            <td>{{ product.store_id }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-secondary text-opacity-50 text-end">category:</td>
+                            <td>{{ product.category }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col p-3">
+                    <label for="descriptionTextarea" class="form-label fw-bold">Description:</label>
+                    <div class="form-control" id="descriptionTextarea">
+                        {{ product.description | safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

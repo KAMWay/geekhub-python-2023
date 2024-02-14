@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block base %}
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Price</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Total</th>
+            <th scope="col"></th>
+        </tr>
+        </thead>
+        {% if cart_items %}
+            <tbody id="cartBodyTable">
+            {% for item in cart_items %}
+                <tr>
+                    <th scope="row">
+                        <a href="{% url 'products:detail' item.product.id %}"
+                           title="Detail info">{{ item.product.id }}</a>
+                    </th>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.product.sale_price }}</td>
+                    <td class="text-center fw-bold" id="detail_quantity_{{ item.quantity }}">
+                        {{ item.quantity }}
+                    </td>
+                    <td>{{ item.total }}</td>
+                    <td>
+                        <div class="input-group">
+                            <button title="plus" class="bi bi-bag-plus nav-link mx-1 updateCartButton"
+                                    data-product_id="{{ item.product.id }}"
+                                    data-update_quantity="1">
+                            </button>
+
+                            <button title="dash" class="bi bi bi-bag-dash nav-link updateCartButton"
+                                    data-product_id="{{ item.product.id }}"
+                                    data-update_quantity="-1">
+                            </button>
+
+                            <button title="trash" class="nav-link bi bi-trash mx-1 updateCartButton"
+                                    data-product_id="{{ item.product.id }}"
+                                    data-update_quantity="0">
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td id="itemTotalCart" class="fw-bold">{{ cart_items.total }}</td>
+                <td>
+                    <div class="input-group">
+                        {% csrf_token %}
+                        <form method="POST">{% csrf_token %}
+                            <button type="submit" title="trash" class="nav-link bi bi-trash mx-1"></button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tfoot>
+        {% endif %}
+    </table>
+{% endblock %}
+
+{% block extra_scripts %}
+    <script>
+        window.cartApiUrl = "{% url 'api_cart:cart' %}"
+    </script>
+
+    {% csrf_token %}
+    <script src="{% static 'js/cart.js' %}"></script>
+    <script src="{% static 'js/ajax.js' %}"></script>
+    <script src="{% static 'js/message.js' %}"></script>
+{% endblock %}
