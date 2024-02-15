@@ -9,7 +9,7 @@ class AddItemTestCase(APITestCase):
     client: APIClient()
     maxDiff = None
 
-    def test_view_authenticated_user_success(self):
+    def test_access_authenticated_user_success(self):
         self.client.force_authenticate(user=UserFactory())
 
         response = self.client.get(
@@ -56,7 +56,7 @@ class AddItemTestCase(APITestCase):
         }
         self.assertDictEqual(expected_data, response.json(), msg=response.content)
 
-    def test_view_not_authenticated_user_failed(self):
+    def test_access_not_authenticated_user_failed(self):
         response = self.client.get(
             path=reverse('api_cart:cart'),
         )
