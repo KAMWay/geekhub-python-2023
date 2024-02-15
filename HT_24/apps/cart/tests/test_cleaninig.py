@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase, APIClient
 from apps.products.tests.factories import UserFactory, ProductFactory
 
 
-class AddItemTestCase(APITestCase):
+class CartCleaningTestCase(APITestCase):
     client: APIClient()
     maxDiff = None
 

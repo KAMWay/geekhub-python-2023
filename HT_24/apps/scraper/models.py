@@ -38,7 +38,7 @@ class ScrapingTask:
         'zipCode': '10101',
     }
 
-    def __init__(self, ids: set):
+    def __init__(self, ids: list):
         self.__ids = ids
 
     def run(self):

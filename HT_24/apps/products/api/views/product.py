@@ -38,7 +38,7 @@ class ProductViewSet(ModelViewSet):
             OpenApiExample(
                 'Example Value',
                 value={
-                    "id": "string of ids separated by comma"
+                    "ids": "string of ids separated by comma"
                 },
             ),
         ],
@@ -46,11 +46,12 @@ class ProductViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         if request.method.upper() != 'POST':
             return super().create(request, *args, **kwargs)
+
         try:
-            ids_str = ''.join(ch for ch in str(dict(request.data).get('id')) if ch not in '"\'[]')
+            ids_str = ''.join(ch for ch in str(dict(request.data).get('ids')) if ch not in '"\'[]')
             ids = [item.strip() for item in ids_str.split(',')]
-            scraping_items.delay(ids=ids)
+            scraping_items.apply_async(ids=ids)
             return Response(status=status.HTTP_204_NO_CONTENT)
-        except Exception:
+        except:
             logger.error(f"scraping process run unsuccessful")
             return Response(status=status.HTTP_400_BAD_REQUEST)

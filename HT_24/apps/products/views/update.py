@@ -43,7 +43,7 @@ class ProductUpdateView(UpdateView):
         return super().get_success_url()
 
     def post(self, request, *args, **kwargs):
-        if request.user and not request.user.is_superuser:
+        if not request.user and not request.user.is_superuser:
             return redirect('products:update')
 
         return super().post(request, *args, **kwargs)

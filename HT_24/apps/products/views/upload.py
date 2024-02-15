@@ -22,6 +22,9 @@ class ProductUploadView(FormView):
             return redirect('index')
 
     def post(self, request, *args, **kwargs):
+        if not request.user and not request.user.is_superuser:
+            return redirect('products:upload')
+
         if request.user and request.user.is_superuser:
             form = ProductForm(request.POST)
             if form.is_valid():

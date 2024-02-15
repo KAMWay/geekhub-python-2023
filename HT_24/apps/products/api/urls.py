@@ -9,7 +9,7 @@ router.register(prefix=r'brands', viewset=views.BrandAPIView, basename='brands')
 router.register(prefix=r'products', viewset=views.ProductViewSet, basename='products')
 router.register(prefix=r'tags', viewset=views.TagViewSet, basename='tags')
 
-app_name = "api_account"
+app_name = "api_products"
 urlpatterns = [
     path("", include(router.urls)),
 ]
